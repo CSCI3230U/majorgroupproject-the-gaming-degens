@@ -5,8 +5,8 @@ Before you submit your project, modify the following table to include everyone's
 | Group Member Name          | GitHub Username    |
 | :------------------------- |:------------------:|
 | Patrick Aguilera | Patrickaguilera |
-| Andrew Murdoch | AndreMurd |
-| Adam Green | <github_username3> |
+| Andrew Murdoch | AndrewMurd |
+| Adam Green | AdamVanity |
 | Andre Forbes | AForbes918 |
 | <first_name5> <last_name5> | <github_username5> |
 
