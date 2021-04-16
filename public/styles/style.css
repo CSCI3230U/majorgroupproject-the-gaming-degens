@@ -5,17 +5,30 @@
 }
 
 body {
-    align-items: center;
+    
     background: white;
     display: flex;
-    flex-direction: column;
-    font-family: sans-serif;
-    padding: 25px;
-    width: 100%;
+
 }
+
+/* #LoginForm{
+  
+    
+} */
 
 h1 {
     text-transform: uppercase;
+}
+.Game{
+     align-items: center;
+     background: white;
+     display: flex;
+     flex-direction: column;
+     font-family: sans-serif;
+     padding: 25px;
+     width: 100%;
+     
+
 }
 
 .game-board {
@@ -78,12 +91,15 @@ h1 {
     background: yellow;
     border: 3px solid black;
 }
-
+.Login{
+    height: 50px;
+}
 .footer {
     align-items: center;
     display: flex;
     justify-content: space-between;
     width: 700px;
+    background-color: white;
 }
 
 .reset {
