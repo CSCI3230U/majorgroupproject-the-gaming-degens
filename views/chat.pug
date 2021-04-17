@@ -1,0 +1,37 @@
+extends game
+block chat
+    head 
+        link(rel='stylesheet' href='styles/chat.css')
+    body
+        .chat-container
+            header.chat-header
+                h1
+                    i.fas.fa-smile ChatCord
+                a.btn(href='index.html') Leave Room
+            main.chat-main
+                .chat-sidebar
+                    h3
+                        i.fas.fa-comments Room Name:
+                    h2#room-name JavaScript
+                    h3
+                        i.fas.fa-users Users
+                    ul#users
+                        li Brad
+                        li John
+                        li Mary
+                        li Paul
+                        li Mike
+                .chat-messages
+                    .message
+                        p.meta Brad 
+                        span 9:12pm
+                        p.text Lorem ipsum dolor sit amet consectetur adipisicing elit. Eligendi, repudiandae.
+                    .message
+                        p.meta Mary 
+                        span 9:15pm
+                        p.text Lorem ipsum dolor sit amet consectetur adipisicing elit. Eligendi, repudiandae.
+            .chat-form-container
+                form#chat-form
+                    input#msg(type='text' placeholder='Enter Message' required='' autocomplete='off')
+                    button.btn
+                        i.fas.fa-paper-plane Send

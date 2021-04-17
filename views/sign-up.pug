@@ -1,6 +1,6 @@
 extends toplevel 
 block content 
-    form#Form(method='post' action='/processLogin' class='form')
+    form#Form(method='post' action='/processSignUp' class='form')
         table#Login
             tr
             th Username: 
@@ -12,4 +12,4 @@ block content
                 input(class='input' type='password' name='password')
             tr
             td
-                button Sign In
+                button#signUp Sign Up

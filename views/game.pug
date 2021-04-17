@@ -1,5 +1,6 @@
 extends toplevel 
 block content 
+    p#roomName=resp
     .Game
         img(src="images/titleImg.gif", alt="") 
         .game-board
@@ -55,3 +56,26 @@ block content
         .footer
             button.reset Reset
             span.status
+
+    .chat-container
+        header.chat-header
+            h1
+                i.fas.fa-smile Connect 4 Chat
+            button.btn
+                a.fas.fa-paper-plane#lev(href='index.html') Leave Room
+        main.chat-main
+            .chat-sidebar
+                h3
+                    i.fas.fa-comments Room Name:
+                h2#room-name JavaScript
+                h3
+                    i.fas.fa-users Users
+                ul#users
+                    li Brad
+            .chat-messages
+                .message
+        .chat-form-container
+            form#chat-form
+                input#msg(type='text' placeholder='Enter Message' required='' autocomplete='off')
+                button.btn
+                    i.fas.fa-paper-plane Send

@@ -3,6 +3,7 @@ html
         link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css')
         script(type='text/javascript' src='https://code.jquery.com/jquery-latest.min.js')
         script(defer='' type='text/javascript' src='scripts/logic.js')
+        script(src='/socket.io/socket.io.js')
         link(rel='stylesheet' href='styles/style.css')
         title=pageTitle
     body
@@ -16,7 +17,12 @@ html
                 span(aria-hidden='true')
             .navbar-menu(id='sudoku nav')
                 .navbar-start
-                    a.navbar-item(href='/') Play Game
+                    a.navbar-item(href='/') Home
+                    .navbar-item.has-dropdown.is-hoverable
+                        a.navbar-link Play Multiplayer
+                        .navbar-dropdown
+                            a.navbar-item#createRoom Create Room
+                            a.navbar-item#joinRoom Join Room
                     a.navbar-item(href='/history') Match History
             .navbar-end
                 .navbar-item
