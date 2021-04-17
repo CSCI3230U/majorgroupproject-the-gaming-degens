@@ -1,34 +1,34 @@
-* {
+/* * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-}
-
-body {
-    
-    background: white;
-    display: flex;
-
-}
-
-/* #LoginForm{
-  
-    
 } */
 
-h1 {
-    text-transform: uppercase;
+body {
+    background: white;
 }
-.Game{
-     align-items: center;
-     background: white;
-     display: flex;
-     flex-direction: column;
-     font-family: sans-serif;
-     padding: 25px;
-     width: 100%;
-     
 
+.navbar {
+    height: 60px;
+}
+
+#Form {
+    margin-left: 100px;
+    margin-top: 100px;
+} 
+
+.input {
+    margin: 10px;
+}
+
+.Game {
+    align-items: center;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    font-family: sans-serif;
+    padding: 25px;
+    width: 100%;
 }
 
 .game-board {
@@ -128,7 +128,6 @@ h1 {
     font-size: 20px;
 }
 
-/* Util CSS */
 .left-border {
     border-left: 3px solid black;
 }

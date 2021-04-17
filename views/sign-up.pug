@@ -1,0 +1,15 @@
+extends toplevel 
+block content 
+    form#Form(method='post' action='/processLogin' class='form')
+        table#Login
+            tr
+            th Username: 
+            td
+                input(class='input' type='text' name='username')
+            tr
+            th Password: 
+            td
+                input(class='input' type='password' name='password')
+            tr
+            td
+                button Sign In

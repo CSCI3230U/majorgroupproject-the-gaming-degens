@@ -1,4 +1,4 @@
-express = require('express');
+let express = require('express');
 let session = require('express-session');
 const { v4: uuidv4 } = require('uuid');
 let app = express();
@@ -13,18 +13,35 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     secret: 'passphrase',
-
 }));
 
+app.get('/', function(request, response) {
+    response.render("game", {
+        pageTitle: "Connect 4!",
+    });
+});
+
+app.get('/sign-up', function(request, response) {
+    response.render("sign-up", {
+        pageTitle: "Sign Up Page",
+    });
+});
+
+app.get('/login', function(request, response) {
+    response.render("login", {
+        pageTitle: "Login Page",
+    });
+});
+
 //Process logining
-app.post('/processLogin',function(request,response){
+app.post('/processLogin',function(request, response) {
     console.log(request.body);
     request.session.username = request.body.username;
     request.session.password = request.body.passsword;
     response.send('Login Successful');
 });
 
-app.get('/logout', function(request,response){
+app.get('/logout', function(request, response) {
     request.session.username = '';
     request.session.passsword = '';
 });

@@ -1,0 +1,26 @@
+html 
+    head
+        link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css')
+        script(type='text/javascript' src='https://code.jquery.com/jquery-latest.min.js')
+        script(defer='' type='text/javascript' src='scripts/logic.js')
+        link(rel='stylesheet' href='styles/style.css')
+        title=pageTitle
+    body
+        nav.navbar.is-dark(role='navigation' aria-label='main navigation')
+            
+            a.navbar-item.logo
+                img(src='images/logo1.png' width='40' height='100')
+            a.navbar-burger.burger(role='button' aria-label='menu' aria-expanded='false' data-target='navMenu')
+                span(aria-hidden='true')
+                span(aria-hidden='true')
+                span(aria-hidden='true')
+            .navbar-menu(id='sudoku nav')
+                .navbar-start
+                    a.navbar-item(href='/') Play Game
+                    a.navbar-item(href='/history') Match History
+            .navbar-end
+                .navbar-item
+                    .buttons
+                        a.button.is-danger(href='/sign-up') Sign-Up
+                        a.button.is-light(href='/login') Log in
+        block content
