@@ -4,7 +4,6 @@ Before you submit your project, modify the following table to include everyone's
 
 | Group Member Name          | GitHub Username    |
 | :------------------------- |:------------------:|
-| Patrick Aguilera | Patrickaguilera |
 | Andrew Murdoch | AndrewMurd |
 | Adam Green | AdamVanity |
 | Andre Forbes | AForbes918 |
