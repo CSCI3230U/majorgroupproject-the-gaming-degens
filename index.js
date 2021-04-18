@@ -38,8 +38,17 @@ function extractCookies(cookies) {
 io.on('connection', socket => {
     let cookies = socket.handshake.headers.cookie;
     let dictCookies = extractCookies(cookies);
-    if ("room" in dictCookies) {
-        if (dictCookies.room !== "undefined") {
+    if ("room" in dictCookies && "username" in dictCookies) {
+        if (dictCookies.room !== "undefined" && dictCookies.signedIn == "true") {
+            if (getCurrentUser(socket.id)) { 
+                userJoin(socket.id, dictCookies.username, dictCookies.room);
+            }
+
+            socket.emit('rejoin', ({
+                r: dictCookies.room, 
+                n: dictCookies.username,
+            }));
+
             socket.join(dictCookies.room);
 
             userJoin(socket.id, dictCookies.username, dictCookies.room);
@@ -203,35 +212,41 @@ app.get('/login', function(request, response) {
 });
 
 //Process logining
-app.post('/processedLogin', function(request, response) {
+app.post('/processLogin', function(request, response) {
     request.session.signedIn = true;
     request.session.username = request.body.username;
     request.session.password = request.body.password;
     var rightCombo = false;
+
+    response.cookie('username', request.body.username);
+    response.cookie('signedIn', "true");
+
     modelUsers.User.find({username: request.session.username}).then(function(playerInfo){
        for (var i = 0; i < playerInfo.length; i++){
-
-           if ( request.body.username == playerInfo[i].username &&  request.body.password == playerInfo[i].password){
-               rightCombo = true;           }
+           if ( request.body.username == playerInfo[i].username &&  request.body.password == playerInfo[i].password) {
+               rightCombo = true;           
+            }
        }
        if (rightCombo == true){
-        response.render("game", {
-            pageTitle: "Connect 4!",
-            resp: "Login Successful!",
-        });
+            response.render("game", {
+                pageTitle: "Connect 4!",
+                resp: "Login Successful!",
+                signedIn: true,
+            });
        }
        else{
-        response.render("game", {
-            pageTitle: "Connect 4!",
-            resp: "Invalid Username or password!",
-        });
+            response.render("login", {
+                pageTitle: "Connect 4!",
+                resp: "Invalid Username or password!",
+                signedIn: true,
+            });
        }        
     });   
 });
 
 
 //MAke a sign up and verify that the user name is not the same as another in the database
-app.post('/processedSignUp',function(request, response) {
+app.post('/processSignUp',function(request, response) {
     request.session.username = request.body.username;
     request.session.password = request.body.password;
     var newAccount = false;
@@ -248,15 +263,15 @@ app.post('/processedSignUp',function(request, response) {
     }
     
     console.log(userData);
-    modelUsers.User.find({username: request.session.username}).then(function(playerInfo){
+    modelUsers.User.find({username: request.session.username}).then(function(playerInfo) {
             if ( playerInfo.length == 0){
                 newAccount = true;           
             }
             
-            if (request.session.username.length < 4 ){
+            if (request.session.username.length < 4 ) {
                 userGreaterThanFour = false;
             }
-            if (request.session.password.length < 6){
+            if (request.session.password.length < 6) {
                 passGreaterThanSix = false;
             }
                 
@@ -276,33 +291,33 @@ app.post('/processedSignUp',function(request, response) {
             });
         }
         else{
-            if(userGreaterThanFour == false && passGreaterThanSix == false){
+            if(userGreaterThanFour == false && passGreaterThanSix == false) {
                 console.log('Error in input');
                 response.render("sign-up", {
-                pageTitle: "Connect 4!",
-                resp: "Both username and password values are invalid",
+                    pageTitle: "Connect 4!",
+                    resp: "Both username and password values are invalid",
                 });
             }
-            else if(userGreaterThanFour == false){
+            else if(userGreaterThanFour == false) {
                 console.log('Error in input');
                 response.render("sign-up", {
-                pageTitle: "Connect 4!",
-                resp: "Username must be atleast 4 characters",
+                    pageTitle: "Connect 4!",
+                    resp: "Username must be atleast 4 characters",
                 });
             }
 
-            else if(passGreaterThanSix == false){
+            else if(passGreaterThanSix == false) {
                 console.log('Error in input');
                 response.render("sign-up", {
-                pageTitle: "Connect 4!",
-                resp: "Password must be atleast 6 characters",
+                    pageTitle: "Connect 4!",
+                    resp: "Password must be atleast 6 characters",
                 });
             }
             else{
                 console.log('Error in input');
                 response.render("sign-up", {
-                pageTitle: "Connect 4!",
-                resp: "Username already exists!",
+                    pageTitle: "Connect 4!",
+                    resp: "Username already exists!",
                 });
             }
         }       

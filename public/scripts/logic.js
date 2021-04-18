@@ -20,6 +20,13 @@ function createMessage(name, time, text) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+socket.on('rejoin', ({r, n}) => {
+    console.log("test");
+    let codeHolder = document.getElementById("code");
+    codeHolder.value = r;
+    document.getElementById('form').submit();
+});
+
 $("#createRoom").click(function(event) {
     $("#roomName").text("Sign in to play!");
 }); 
