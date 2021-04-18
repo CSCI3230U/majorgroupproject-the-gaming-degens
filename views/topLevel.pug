@@ -2,7 +2,10 @@ html
     head
         link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css')
         script(type='text/javascript' src='https://code.jquery.com/jquery-latest.min.js')
-        script(defer='' type='text/javascript' src='scripts/logic.js')
+        if signedIn
+            script(defer='' type='text/javascript' src='scripts/multiPlayerLogic.js')
+        else
+            script(defer='' type='text/javascript' src='scripts/logic.js')
         script(src='/socket.io/socket.io.js')
         link(rel='stylesheet' href='styles/style.css')
         title=pageTitle
@@ -17,7 +20,7 @@ html
                 span(aria-hidden='true')
             .navbar-menu(id='sudoku nav')
                 .navbar-start
-                    a.navbar-item(href='/') Home
+                    a.navbar-item(href='/home') Home
                     .navbar-item.has-dropdown.is-hoverable
                         a.navbar-link Play Multiplayer
                         .navbar-dropdown
@@ -27,6 +30,10 @@ html
             .navbar-end
                 .navbar-item
                     .buttons
-                        a.button.is-danger(href='/sign-up') Sign-Up
-                        a.button.is-light(href='/login') Log in
+                        if signedIn
+                            a.button.is-light(href='/logout') Log out
+                        else
+                            a.button.is-danger(href='/sign-up') Sign-Up
+                            a.button.is-light(href='/login') Log in
+        input#gameCode.hidden(class='input' type='text' name='code')
         block content

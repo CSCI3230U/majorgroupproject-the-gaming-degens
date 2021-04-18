@@ -2,7 +2,7 @@
 let users = [];
 
 function userJoin(id, username, room) {
-    let user = { id, username, room};
+    let user = {id, username, room};
 
     users.push(user);
 
@@ -10,6 +10,10 @@ function userJoin(id, username, room) {
 }
 
 function getCurrentUser(id) {
+    return users.find(user => user.id === id);
+}
+
+function getCurrentUserbyName(id) {
     return users.find(user => user.id === id);
 }
 
@@ -25,4 +29,4 @@ function getRoomUsers(room) {
     return users.filter(user => user.room === room);
 }
 
-module.exports = {userJoin, getCurrentUser, userLeave, getRoomUsers};
+module.exports = {userJoin, getCurrentUser, userLeave, getRoomUsers, getCurrentUserbyName};

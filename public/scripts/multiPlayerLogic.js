@@ -3,8 +3,14 @@ let topCells = document.querySelectorAll(".cell.row-top")
 let resetButton = document.querySelector(".reset");
 let statusSpan = document.querySelector(".status");
 let chatMessages = document.querySelector('.chat-messages');
-let username = "";
-let signedIn = false;
+let input = document.getElementById("gameCode");
+let inRoom = false;
+let gameLive = false;
+let isMyTurn = true;
+
+// just for testing
+let username = "Andrew Test";
+let room = "";
 
 let socket = io();
 
@@ -19,20 +25,94 @@ function makeRoomCode(length) {
 }
 
 $("#createRoom").click(function(event) {
-    $("#roomName").text("Sign in to play!");
+    inRoom = true;
+    input.classList.add("hidden");
+    let lengthOfCode = 5;
+    room = makeRoomCode(lengthOfCode)
+    $("#roomName").text("Game Code: " + room);
+    socket.emit('createRoom', {username, room});
 }); 
 
 $("#joinRoom").click(function(event) {
-    $("#roomName").text("Sign in to play!");
-});      
+    inRoom = true;
+    $("#roomName").text("↓ Enter game code below ↓");
+    input.classList.remove("hidden");
+    $(input).on('keyup', function (e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            room = input.value;
+            socket.emit('joinRoom', {username, room});
+            input.classList.add("hidden");
+            $("#roomName").text("");
+        }
+    });
+});     
 
-// $("#signUp").click(function(e) {
-//     signedIn = true;
-// });
+function createMessage(name, time, text) {
+    let div = document.createElement('div');
+    div.classList.add('message');
+    div.innerHTML = `<p class="meta">${name} <span>${time}</span></p>
+    <p class="text">
+        ${text}
+    </p>`;
+    document.querySelector('.chat-messages').appendChild(div);
 
-// $("#signIn").click(function(e) {
-//     signedIn = true;
-// });
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+socket.on('message', message => {
+    createMessage(message.username, message.time, message.text);
+});
+
+socket.on('live', status => {
+    gameLive = status;
+    inRoom = status;
+});
+
+$("#chat-form").submit(function(e) {
+    e.preventDefault();
+    console.log(inRoom);
+    if (!inRoom) {
+        createMessage("Warning!", "", "You are not in a chat room yet!");
+        return;
+    }
+    let msg = e.target.elements.msg.value;
+    socket.emit('chatMessage', msg);
+
+    e.target.elements.msg.value = '';
+    e.target.elements.msg.focus();
+});
+
+socket.on('room', ({r, n}) => {
+    document.cookie = `room=${r}`;
+    document.cookie = `username=${n}`;
+});
+
+socket.on('roomUsers', ({rm, users}) => {
+    outputRoomName(rm);
+    outputUsers(users);
+});
+
+function outputRoomName(rm) {
+    let rmName = document.getElementById("room-name");
+    rmName.innerHTML = rm;
+}
+
+function removeAllChildNodes(parent) {
+    while (parent.firstChild) {
+        parent.removeChild(parent.firstChild);
+    }
+}
+
+function outputUsers(users) {
+    let userList = document.getElementById("users");
+    removeAllChildNodes(userList);
+    // userList.innerHTML = `${users.map(user => `<li>${user.username}<li>`).join()}`;
+    for (let user of users) {
+        let li = document.createElement('li');
+        li.innerHTML = user.username;
+        userList.appendChild(li);
+    }
+}
 
 $(document).ready(function() {
     $(".navbar-burger").click(function() {
@@ -58,9 +138,6 @@ let row3 = [allCells[21], allCells[22], allCells[23], allCells[24], allCells[25]
 let row4 = [allCells[28], allCells[29], allCells[30], allCells[31], allCells[32], allCells[33], allCells[34]];
 let row5 = [allCells[35], allCells[36], allCells[37], allCells[38], allCells[39], allCells[40], allCells[41]];
 let rows = [row0, row1, row2, row3, row4, row5, topRow];
-
-let gameLive = true;
-let isMyTurn = true;
 
 function getclassArray(cell) {
     let classList = cell.classList;
