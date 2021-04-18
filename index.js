@@ -1,7 +1,6 @@
 let express = require('express');
 let session = require('express-session');
 let socketio = require('socket.io');
-//let session_handler = require('io-session-handler').from(socketio); 
 const { v4: uuidv4 } = require('uuid');
 let http = require('http');
 let formatMessage = require('./public/scripts/utils/messages.js');
@@ -45,7 +44,7 @@ io.on('connection', socket => {
 
             userJoin(socket.id, dictCookies.username, dictCookies.room);
     
-            socket.emit('message', formatMessage(adminName, 'Welcome to Connect 4!'));
+            socket.emit('message', formatMessage(adminName, 'Welcome back to Connect 4!'));
     
             socket.broadcast.to(dictCookies.room).emit('message', formatMessage(adminName, `${dictCookies.username} has joined the Game`));
             socket.emit('live', true);
@@ -59,6 +58,7 @@ io.on('connection', socket => {
 
     socket.on('createRoom', ({username, room}) => {
         let user = userJoin(socket.id, username, room);
+        console.log(user);
 
         socket.emit('room', ({
             r: room,
@@ -107,7 +107,11 @@ io.on('connection', socket => {
 
     socket.on('chatMessage', (msg) => {
         let user = getCurrentUser(socket.id);
-        io.to(user.room).emit('message', formatMessage(user.username, msg));
+        if (user) {
+            io.to(user.room).emit('message', formatMessage(user.username, msg));
+        } else {
+            socket.emit('notInRoom');
+        }
     });
 
     socket.on('move', (move) => {
@@ -120,6 +124,19 @@ io.on('connection', socket => {
         let user = userLeave(socket.id);
 
         if (user) {
+            io.to(user.room).emit('message', formatMessage(adminName, `${user.username} has left the chat`));
+            io.to(user.room).emit('roomUsers', {
+                rm: user.room,
+                users: getRoomUsers(user.room),
+            }); 
+        }
+    });
+
+    socket.on('leftRoom', () => {
+        let user = userLeave(socket.id);
+
+        if (user) {
+            socket.leave(user.room);
             io.to(user.room).emit('message', formatMessage(adminName, `${user.username} has left the chat`));
             io.to(user.room).emit('roomUsers', {
                 rm: user.room,
@@ -170,7 +187,6 @@ app.get('/login', function(request, response) {
     });
 });
 
-//Process logining
 app.post('/processLogin', function(request, response) {
     request.session.signedIn = true;
     request.session.username = request.body.username;
@@ -182,12 +198,21 @@ app.post('/processLogin', function(request, response) {
     });
 });
 
+app.get('/gameRoom', function(request, response) {
+    response.cookie('room', request.query.code);
+    response.render("game", {
+        pageTitle: "Connect 4!",
+        resp: "Game Code: " + request.query.code,
+        signedIn: true,
+    });
+});
+
 app.post('/processedSignUp', function(request, response) {
     request.session.signedIn = true;
     request.session.username = request.body.username;
     request.session.password = request.body.passsword;
 
-    response.cookie('username', "undefined");
+    response.cookie('username', request.body.username);
     response.cookie('room', "undefined");
     response.cookie('signedIn', "true");
 

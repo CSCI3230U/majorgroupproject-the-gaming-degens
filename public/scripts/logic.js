@@ -8,14 +8,16 @@ let signedIn = false;
 
 let socket = io();
 
-function makeRoomCode(length) {
-    let result = [];
-    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let charactersLength = characters.length;
-    for (let i = 0; i < length; i++ ) {
-        result.push(characters.charAt(Math.floor(Math.random() * charactersLength)));
-    }
-    return result.join('');
+function createMessage(name, time, text) {
+    let div = document.createElement('div');
+    div.classList.add('message');
+    div.innerHTML = `<p class="meta">${name} <span>${time}</span></p>
+    <p class="text">
+        ${text}
+    </p>`;
+    document.querySelector('.chat-messages').appendChild(div);
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 $("#createRoom").click(function(event) {
@@ -26,13 +28,10 @@ $("#joinRoom").click(function(event) {
     $("#roomName").text("Sign in to play!");
 });      
 
-// $("#signUp").click(function(e) {
-//     signedIn = true;
-// });
-
-// $("#signIn").click(function(e) {
-//     signedIn = true;
-// });
+$("#chat-form").submit(function(e) {
+    e.preventDefault();
+    createMessage("Warning!", "", "You are not in a chat room yet!");
+});
 
 $(document).ready(function() {
     $(".navbar-burger").click(function() {

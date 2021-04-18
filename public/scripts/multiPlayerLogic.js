@@ -28,9 +28,11 @@ $("#createRoom").click(function(event) {
     inRoom = true;
     input.classList.add("hidden");
     let lengthOfCode = 5;
-    room = makeRoomCode(lengthOfCode)
-    $("#roomName").text("Game Code: " + room);
+    room = makeRoomCode(lengthOfCode);
     socket.emit('createRoom', {username, room});
+    let codeHolder = document.getElementById("code");
+    codeHolder.value = room;
+    document.getElementById('form').submit();
 }); 
 
 $("#joinRoom").click(function(event) {
@@ -43,8 +45,19 @@ $("#joinRoom").click(function(event) {
             socket.emit('joinRoom', {username, room});
             input.classList.add("hidden");
             $("#roomName").text("");
+            let codeHolder = document.getElementById("code");
+            codeHolder.value = room;
+            document.getElementById('form').submit();
         }
     });
+});     
+
+$("#lev").click(function(event) {
+    socket.emit('leftRoom', {username, room});
+    document.cookie = 'room=undefined';
+    let codeHolder = document.getElementById("code");
+    codeHolder.value = "undefined";
+    document.getElementById('form').submit();
 });     
 
 function createMessage(name, time, text) {
@@ -68,13 +81,12 @@ socket.on('live', status => {
     inRoom = status;
 });
 
+socket.on('notInRoom', message => {
+    createMessage("Warning!", "", "You are not in a chat room yet!");
+});
+
 $("#chat-form").submit(function(e) {
     e.preventDefault();
-    console.log(inRoom);
-    if (!inRoom) {
-        createMessage("Warning!", "", "You are not in a chat room yet!");
-        return;
-    }
     let msg = e.target.elements.msg.value;
     socket.emit('chatMessage', msg);
 

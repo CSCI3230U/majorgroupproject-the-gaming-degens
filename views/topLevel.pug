@@ -35,5 +35,8 @@ html
                         else
                             a.button.is-danger(href='/sign-up') Sign-Up
                             a.button.is-light(href='/login') Log in
+        
         input#gameCode.hidden(class='input' type='text' name='code')
+        form#form(method="get", action="/gameRoom", class="form")
+                                input#code(class='input' type='hidden' name='code')
         block content
