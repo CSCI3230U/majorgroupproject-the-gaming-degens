@@ -58,7 +58,6 @@ io.on('connection', socket => {
 
     socket.on('createRoom', ({username, room}) => {
         let user = userJoin(socket.id, username, room);
-        console.log(user);
 
         socket.emit('room', ({
             r: room,
@@ -120,6 +119,12 @@ io.on('connection', socket => {
         io.to(user.room).emit('move', move);
     });
 
+    socket.on('move', (move) => {
+        let user = getCurrentUser(socket.id);
+        console.log(move);
+        io.to(user.room).emit('move', move);
+    });
+
     socket.on('disconnect', () => {
         let user = userLeave(socket.id);
 
@@ -160,6 +165,16 @@ app.get('/', function(request, response) {
     });
 });
 
+app.get('/gameRoom', function(request, response) {
+    response.cookie('room', request.query.code);
+    response.render("game", {
+        pageTitle: "Connect 4!",
+        resp: "Game Code: " + request.query.code,
+        signedIn: true,
+    });
+});
+
+
 app.get('/home', function(request, response) {
     let dictCookies = extractCookies(request.headers.cookie);
     if (dictCookies.signedIn == 'true') {
@@ -187,30 +202,41 @@ app.get('/login', function(request, response) {
     });
 });
 
-app.post('/processLogin', function(request, response) {
+//Process logining
+app.post('/processedLogin', function(request, response) {
     request.session.signedIn = true;
     request.session.username = request.body.username;
-    request.session.password = request.body.passsword;
+    request.session.password = request.body.password;
+    var rightCombo = false;
+    modelUsers.User.find({username: request.session.username}).then(function(playerInfo){
+       for (var i = 0; i < playerInfo.length; i++){
 
-    response.render("game", {
-        pageTitle: "Connect 4!",
-        resp: "Login Successful!",
-    });
+           if ( request.body.username == playerInfo[i].username &&  request.body.password == playerInfo[i].password){
+               rightCombo = true;           }
+       }
+       if (rightCombo == true){
+        response.render("game", {
+            pageTitle: "Connect 4!",
+            resp: "Login Successful!",
+        });
+       }
+       else{
+        response.render("game", {
+            pageTitle: "Connect 4!",
+            resp: "Invalid Username or password!",
+        });
+       }        
+    });   
 });
 
-app.get('/gameRoom', function(request, response) {
-    response.cookie('room', request.query.code);
-    response.render("game", {
-        pageTitle: "Connect 4!",
-        resp: "Game Code: " + request.query.code,
-        signedIn: true,
-    });
-});
 
-app.post('/processedSignUp', function(request, response) {
-    request.session.signedIn = true;
+//MAke a sign up and verify that the user name is not the same as another in the database
+app.post('/processedSignUp',function(request, response) {
     request.session.username = request.body.username;
-    request.session.password = request.body.passsword;
+    request.session.password = request.body.password;
+    var newAccount = false;
+    var userGreaterThanFour = true;
+    var passGreaterThanSix = true;
 
     response.cookie('username', request.body.username);
     response.cookie('room', "undefined");
@@ -218,23 +244,69 @@ app.post('/processedSignUp', function(request, response) {
 
     let userData = {
         username: request.body.username,
-        passsword: request.body.passsword,
+        password: request.body.password,
     }
-
-    let newUser = new modelUsers.User(userData);
-
-    newUser.save(function(error) {
-        if (error) {
-            console.error('Unable to add User:', error);
-        } else {
-            console.log('User added'); 
-            response.render("game", {
-                pageTitle: "Connect 4!",
-                resp: "Sign-up Successful!",
-                signedIn: true,
+    
+    console.log(userData);
+    modelUsers.User.find({username: request.session.username}).then(function(playerInfo){
+            if ( playerInfo.length == 0){
+                newAccount = true;           
+            }
+            
+            if (request.session.username.length < 4 ){
+                userGreaterThanFour = false;
+            }
+            if (request.session.password.length < 6){
+                passGreaterThanSix = false;
+            }
+                
+            if (newAccount == true && userGreaterThanFour == true && passGreaterThanSix == true){
+            
+            let newUser = new modelUsers.User(userData);
+            newUser.save(function(error) {
+                if (error) {
+                    console.error('Unable to add User:', error);
+                } else {
+                    console.log('User added');
+                    response.render("game", {
+                        pageTitle: "Connect 4!",
+                        resp: "Sign-up Successful!",
+                    });
+                }
             });
         }
-    });
+        else{
+            if(userGreaterThanFour == false && passGreaterThanSix == false){
+                console.log('Error in input');
+                response.render("sign-up", {
+                pageTitle: "Connect 4!",
+                resp: "Both username and password values are invalid",
+                });
+            }
+            else if(userGreaterThanFour == false){
+                console.log('Error in input');
+                response.render("sign-up", {
+                pageTitle: "Connect 4!",
+                resp: "Username must be atleast 4 characters",
+                });
+            }
+
+            else if(passGreaterThanSix == false){
+                console.log('Error in input');
+                response.render("sign-up", {
+                pageTitle: "Connect 4!",
+                resp: "Password must be atleast 6 characters",
+                });
+            }
+            else{
+                console.log('Error in input');
+                response.render("sign-up", {
+                pageTitle: "Connect 4!",
+                resp: "Username already exists!",
+                });
+            }
+        }       
+     });
 });
 
 app.get('/logout', function(request, response) {

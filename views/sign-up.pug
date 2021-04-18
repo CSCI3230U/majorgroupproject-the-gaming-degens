@@ -1,15 +1,16 @@
 extends toplevel 
 block content 
-    form#Form(method='post' action='/processedSignUp' class='form')
+    p#IsValid=resp
+    form#Form(method='post' action='/processSignUp' class='form')
         table#Login
             tr
             th Username: 
             td
-                input(class='input' type='text' name='username')
+                input(class='input' type='text' name='username' placeholder = 'Must be atleast 4 characters')
             tr
             th Password: 
             td
-                input(class='input' type='password' name='password')
+                input(class='input' type='password' name='password' placeholder = 'Must be atleast 6 characters')
             tr
             td
                 button#signUp Sign Up

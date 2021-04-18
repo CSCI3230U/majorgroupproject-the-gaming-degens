@@ -29,7 +29,12 @@
     left: 70px;
     top: 70px;
 }
-
+#IsValid {
+    position: absolute;
+    font-size: 30px;
+    left: 70px;
+    top: 70px;
+}
 body {
     background: white;
 }
