@@ -80,43 +80,123 @@ app.get('/login', function(request, response) {
 app.post('/processLogin',function(request, response) {
     console.log(request.body);
     request.session.username = request.body.username;
-    request.session.password = request.body.passsword;
+    request.session.password = request.body.password;
+    var rightCombo = false;
+    modelUsers.User.find({username: request.session.username}).then(function(playerInfo){
+       for (var i = 0; i < playerInfo.length; i++){
 
-
-
-    response.render("game", {
-        pageTitle: "Connect 4!",
-        resp: "Login Successful!",
-    });
+           if ( request.body.username == playerInfo[i].username &&  request.body.password == playerInfo[i].password){
+               rightCombo = true;           }
+       }
+       if (rightCombo == true){
+        response.render("game", {
+            pageTitle: "Connect 4!",
+            resp: "Login Successful!",
+        });
+       }
+       else{
+        response.render("game", {
+            pageTitle: "Connect 4!",
+            resp: "Invalid Username or password!",
+        });
+       }        
+    });   
 });
 
+
+//MAke a sign up and verify that the user name is not the same as another in the database
 app.post('/processSignUp',function(request, response) {
     request.session.username = request.body.username;
-    request.session.password = request.body.passsword;
+    request.session.password = request.body.password;
+    var newAccount = false;
+    var userGreaterThanFour = true;
+    var passGreaterThanSix = true;
 
     let userData = {
         username: request.body.username,
-        passsword: request.body.passsword,
+        password: request.body.password,
     }
 
-    let newUser = new modelUsers.User(userData);
+    
 
     console.log(userData);
-    newUser.save(function(error) {
-        if (error) {
-            console.error('Unable to add User:', error);
-        } else {
-            console.log('User added');
-            response.render("game", {
-                pageTitle: "Connect 4!",
-                resp: "Sign-up Successful!",
+    modelUsers.User.find({username: request.session.username}).then(function(playerInfo){
+            if ( playerInfo.length == 0){
+                newAccount = true;           
+            }
+            
+            if (request.session.username.length < 4 ){
+                userGreaterThanFour = false;
+            //     console.log('Error in input');
+            //     response.render("sign-up", {
+            //     pageTitle: "Connect 4!",
+            //     resp: "Username amsut be atelast 4 characters",
+            // });
+            }
+            if (request.session.password.length < 6){
+                passGreaterThanSix = false;
+            //     console.log('Error in input');
+            //     response.render("sign-up", {
+            //     pageTitle: "Connect 4!",
+            //     resp: "Password must be atlest 6 characters",
+            // });
+            }
+                
+            if (newAccount == true && userGreaterThanFour == true && passGreaterThanSix == true){
+            
+            let newUser = new modelUsers.User(userData);
+            newUser.save(function(error) {
+                if (error) {
+                    console.error('Unable to add User:', error);
+                } else {
+                    console.log('User added');
+                    response.render("game", {
+                        pageTitle: "Connect 4!",
+                        resp: "Sign-up Successful!",
+                    });
+                }
             });
         }
-    });
+        else{
+            if(userGreaterThanFour == false && passGreaterThanSix == false){
+                console.log('Error in input');
+                response.render("sign-up", {
+                pageTitle: "Connect 4!",
+                resp: "Both username and password values are invalid",
+                });
+            }
+            else if(userGreaterThanFour == false){
+                console.log('Error in input');
+                response.render("sign-up", {
+                pageTitle: "Connect 4!",
+                resp: "Username must be atleast 4 characters",
+                });
+            }
+
+            else if(passGreaterThanSix == false){
+                console.log('Error in input');
+                response.render("sign-up", {
+                pageTitle: "Connect 4!",
+                resp: "Password must be atleast 6 characters",
+                });
+            }
+            else{
+                console.log('Error in input');
+                response.render("sign-up", {
+                pageTitle: "Connect 4!",
+                resp: "Username already exists!",
+                });
+            }
+            
+
+        }        
+     });
+
+    
 });
 
 app.get('/logout', function(request, response) {
     request.session.username = '';
-    request.session.passsword = '';
+    request.session.password = '';
 });
 
