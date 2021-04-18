@@ -12,13 +12,29 @@
 	--error-color: #d9534f;
 }
 
+#gameCode {
+    position: absolute;
+    width: 180px;
+    left: 140px;
+    top: 120px;
+}
+
+.hidden {
+    display: none;
+}
+
 #roomName {
     position: absolute;
     font-size: 30px;
     left: 70px;
     top: 70px;
 }
-
+#IsValid {
+    position: absolute;
+    font-size: 30px;
+    left: 70px;
+    top: 70px;
+}
 body {
     background: white;
 }
