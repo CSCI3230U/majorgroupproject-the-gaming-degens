@@ -19,6 +19,9 @@ let Schema = mongoose.Schema;
 let usersSchema = new Schema({
     username: String,
     password: String,
+    wins: Number,
+    loses: Number,
+
 }, {
     collection: 'users'
 });

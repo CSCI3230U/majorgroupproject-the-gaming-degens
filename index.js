@@ -27,6 +27,7 @@ server.listen(app.get('port'), function() {
 let adminName = "Chat Bot";
 let welcomeMessage = "The room code above is used to connect to a game. Send it to your opponent.";
 let roomSize = 2;
+let players = getUsers();
 
 function extractCookies(cookies) {
     if (cookies == undefined) return false;
@@ -84,16 +85,83 @@ io.on('connection', socket => {
     socket.on('startGame', (num) => {
         let user = getCurrentPlayer(socket);
         let users = getRoomPlayers(user.room);
-
+        
         addGame([], user.room);
 
         if (num == 0) {
             users[0].socket.emit('color', "yellow");
+            players[0].color = 'yellow';
             users[1].socket.emit('color', "red");
+            players[1].color = 'red';
         } else {
             users[0].socket.emit('color', "red");
+            players[0].color = 'red';
             users[1].socket.emit('color', "yellow");
+            players[1].color = 'yellow';
         }
+    });
+
+    //Send to database
+    socket.once('connected', (color) =>{
+        var winningPlayer;
+        var losingPlayer;
+        if (players[0].color == color){
+            winningPlayer = players[0].username;
+            losingPlayer = players[1].username;
+        }
+        if(players[1].color == color){
+            winningPlayer = players[1].username;
+            losingPlayer = players[0].username;
+        }
+      //  Increase winner
+        modelUsers.User.find({username: winningPlayer}).then(function(winner){
+            var addwin = 0
+            addwin = winner[0].wins + 1;
+            let playerData = {
+                username: winner[0].username,
+                password: winner[0].password,
+                wins: addwin,
+                loses: winner[0].loses
+            }
+            
+            modelUsers.User.updateOne(
+                {username: winningPlayer}, 
+                playerData, 
+                function(error, numAffected) {
+                    if (error || numAffected != 1) {
+                        console.error('Unable to update student:', error);
+                        
+                    } 
+                }
+                );
+            
+        });
+
+        //Increase lose
+        modelUsers.User.find({username: losingPlayer}).then(function(loser){
+            var addloss = 0
+            addloss = loser[0].loses + 1;
+            let loserData = {
+                username: loser[0].username,
+                password: loser[0].password,
+                wins: loser[0].wins,
+                loses: addloss,
+            }
+            
+            modelUsers.User.updateOne(
+                {username: losingPlayer}, 
+                loserData, 
+                function(error, numAffected) {
+                    if (error || numAffected != 1) {
+                        console.error('Unable to update student:', error);
+                        
+                    } 
+                }
+                );
+            
+        });
+        
+
     });
 
     socket.on('createRoom', (room) => {
@@ -314,6 +382,8 @@ app.post('/processSignUp',function(request, response) {
     let userData = {
         username: request.body.username,
         password: request.body.password,
+        wins: 0,
+        loses: 0,
     }
     
     modelUsers.User.find({username: request.session.username}).then(function(playerInfo) {
