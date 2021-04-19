@@ -54,7 +54,7 @@ body {
 
 .Game {
     align-items: center;
-    background: white;
+    background: rgb(255, 255, 255);
     display: flex;
     flex-direction: column;
     font-family: sans-serif;
@@ -157,7 +157,7 @@ body {
     font-weight: bold;
     padding: 15px 30px;
     text-transform: uppercase;
-    margin-right: 150px;
+    margin-left: 0px;
 }
 
 .reset:hover {
