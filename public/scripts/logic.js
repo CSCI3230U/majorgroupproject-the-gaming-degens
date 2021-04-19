@@ -21,7 +21,7 @@ function createMessage(name, time, text) {
 }
 
 socket.on('rejoin', ({r, n}) => {
-    console.log("test");
+    
     let codeHolder = document.getElementById("code");
     codeHolder.value = r;
     document.getElementById('form').submit();

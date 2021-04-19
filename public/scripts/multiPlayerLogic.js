@@ -228,7 +228,19 @@ function checkWinningCells(cells) {
     for (let cell of cells) {
         cell.classList.add("win");
     }
+    
     statusSpan.textContent = `${isMyTurn ? myColor: opponentColor} has won!`;
+    
+    if(isMyTurn){
+        socket.emit('connected', myColor);
+        
+    }  
+    else{
+        socket.emit('connected', opponentColor);
+        
+    } 
+   
+    
     return true;
 }
 
@@ -396,6 +408,7 @@ function replayGame(moves) {
     let status = checkStatusGame(lastCell);
     if (status == true) {
         statusSpan.textContent = `${!isMyTurn ? myColor: opponentColor} has won!`;
+        
     }
 }
 
@@ -476,6 +489,8 @@ socket.on('color', (c) => {
     $("#st").addClass("hidden");
     console.log(myColor);
 });
+
+
 
 socket.on('resetCall', () => {
     $("#st").addClass("startGame");
