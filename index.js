@@ -4,7 +4,7 @@ let socketio = require('socket.io');
 const { v4: uuidv4 } = require('uuid');
 let http = require('http');
 let formatMessage = require('./public/scripts/utils/messages.js');
-let {userJoin, getCurrentUser, userLeave, getRoomUsers, getCurrentUserbyName} = require('./public/scripts/utils/users.js');
+let {userJoin, getCurrentUser, userLeave, getRoomUsers, getCurrentUserbyName, getUsers, getInRoom} = require('./public/scripts/utils/users.js');
 let {addPlayer, getCurrentPlayer, getRoomPlayers, playerLeave} = require('./public/scripts/utils/players.js');
 let {addGame, getCurrentGame, getGames} = require('./public/scripts/utils/games.js');
 const modelUsers = require('./public/scripts/models/usersModel.js');
@@ -29,6 +29,7 @@ let welcomeMessage = "The room code above is used to connect to a game. Send it 
 let roomSize = 2;
 
 function extractCookies(cookies) {
+    if (cookies == undefined) return false;
     cookies = cookies
                 .split(';')
                 .map(cookie => cookie.split('='))
@@ -39,13 +40,14 @@ function extractCookies(cookies) {
 }
 
 io.on('connection', socket => {
+    let pushUsers = false;
     let cookies = socket.handshake.headers.cookie;
     let dictCookies = extractCookies(cookies);
     console.log("new connection... " + socket.id);
-    if (getRoomUsers(dictCookies.room).length < roomSize) {
+    if (getRoomUsers(dictCookies.room).length < roomSize && dictCookies) {
         if ("room" in dictCookies && "username" in dictCookies) {
             if (dictCookies.room !== "undefined" && dictCookies.signedIn == "true") {
-                if (!getCurrentUser(socket.id)) { 
+                if (!getInRoom(dictCookies.username, dictCookies.room)) { 
                     userJoin(socket.id, dictCookies.username, dictCookies.room);
                     addPlayer(socket, null, dictCookies.room);
                 }
@@ -72,6 +74,7 @@ io.on('connection', socket => {
                     rm: dictCookies.room,
                     users: getRoomUsers(dictCookies.room),
                 }); 
+                pushUsers = true;
             }
         }
     } else {
@@ -97,9 +100,10 @@ io.on('connection', socket => {
         if (getRoomUsers(room).length > roomSize-1) {
             socket.emit('tooManyUsers');
             return;
-        }
+        }    
         cookies = socket.handshake.headers.cookie;
         dictCookies = extractCookies(cookies);
+        if (!dictCookies) return;
         let user = userJoin(socket.id, dictCookies.username, room);
         addPlayer(socket, null, room);
 
@@ -115,10 +119,12 @@ io.on('connection', socket => {
         
         socket.broadcast.to(user.room).emit('message', formatMessage(adminName, `${dictCookies.username} has joined the Game`));
 
-        io.to(user.room).emit('roomUsers', {
-            rm: user.room,
-            users: getRoomUsers(user.room),
-        }); 
+        if (!pushUsers) {
+            io.to(user.room).emit('roomUsers', {
+                rm: user.room,
+                users: getRoomUsers(user.room),
+            }); 
+        }
     });
 
     socket.on('joinRoom', (room) => {
@@ -128,6 +134,7 @@ io.on('connection', socket => {
         }
         cookies = socket.handshake.headers.cookie;
         dictCookies = extractCookies(cookies);
+        if (!dictCookies) return;
         let user = userJoin(socket.id, dictCookies.username, room);
         addPlayer(socket, null, room);
 
@@ -144,11 +151,12 @@ io.on('connection', socket => {
         if (getRoomUsers(user.room).length > 1) {
             io.to(user.room).emit('live', true);
         }
-
-        io.to(user.room).emit('roomUsers', {
-            rm: user.room,
-            users: getRoomUsers(user.room),
-        }); 
+        if (!pushUsers) {
+            io.to(user.room).emit('roomUsers', {
+                rm: user.room,
+                users: getRoomUsers(user.room),
+            }); 
+        } 
     });
 
     socket.on('chatMessage', (msg) => {
@@ -179,7 +187,7 @@ io.on('connection', socket => {
         playerLeave(socket);
         cookies = socket.handshake.headers.cookie;
         dictCookies = extractCookies(cookies);
-
+        if (!dictCookies) return;
         if (user) {
             io.to(user.room).emit('message', formatMessage(adminName, `${user.username} has left the chat`));
             io.to(user.room).emit('roomUsers', {
@@ -204,6 +212,8 @@ io.on('connection', socket => {
         }
         io.to(user.room).emit('live', false);
     });
+
+    console.log(getUsers());
 });
 
 app.use(express.urlencoded({extended: false}));

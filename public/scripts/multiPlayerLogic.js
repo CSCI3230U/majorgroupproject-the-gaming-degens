@@ -394,6 +394,9 @@ function replayGame(moves) {
     gameLive = true;
     let lastCell = getCell(row, col);
     let status = checkStatusGame(lastCell);
+    if (status == true) {
+        statusSpan.textContent = `${!isMyTurn ? myColor: opponentColor} has won!`;
+    }
 }
 
 $(".cell").hover(function(eventIn) {
