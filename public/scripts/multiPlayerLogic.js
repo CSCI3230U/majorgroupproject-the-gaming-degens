@@ -7,12 +7,29 @@ let input = document.getElementById("gameCode");
 let inRoom = false;
 let gameLive = false;
 let isMyTurn = true;
-
-// just for testing
-let username = "Andrew Test";
+let cookis = extractCookies(document.cookie)
+let myColor = cookis.color;
+let opponentColor = "";
+if (myColor == "yellow") {
+    opponentColor = "red";
+} else {
+    opponentColor = "yellow";
+    isMyTurn = false;
+}
 let room = "";
 
 let socket = io();
+
+function extractCookies(cookies) {
+    if (!cookies) return;
+    cookies = cookies
+                .split(';')
+                .map(cookie => cookie.split('='))
+                .reduce((accumulator, [key, value]) => 
+                    ({...accumulator, [key.trim()]: decodeURIComponent(value)}),
+                {});
+    return cookies;
+}
 
 function makeRoomCode(length) {
     let result = [];
@@ -25,24 +42,22 @@ function makeRoomCode(length) {
 }
 
 $("#createRoom").click(function(event) {
-    inRoom = true;
     input.classList.add("hidden");
     let lengthOfCode = 5;
     room = makeRoomCode(lengthOfCode);
-    socket.emit('createRoom', {username, room});
+    socket.emit('createRoom', room);
     let codeHolder = document.getElementById("code");
     codeHolder.value = room;
     document.getElementById('form').submit();
 }); 
 
 $("#joinRoom").click(function(event) {
-    inRoom = true;
     $("#roomName").text("↓ Enter game code below ↓");
     input.classList.remove("hidden");
     $(input).on('keyup', function (e) {
         if (e.key === 'Enter' || e.keyCode === 13) {
             room = input.value;
-            socket.emit('joinRoom', {username, room});
+            socket.emit('joinRoom', room);
             input.classList.add("hidden");
             $("#roomName").text("");
             let codeHolder = document.getElementById("code");
@@ -53,7 +68,7 @@ $("#joinRoom").click(function(event) {
 });     
 
 $("#lev").click(function(event) {
-    socket.emit('leftRoom', {username, room});
+    socket.emit('leftRoom', room);
     document.cookie = 'room=undefined';
     let codeHolder = document.getElementById("code");
     codeHolder.value = "undefined";
@@ -76,9 +91,14 @@ socket.on('message', message => {
     createMessage(message.username, message.time, message.text);
 });
 
+socket.on('tooManyUsers', () => {
+    createMessage("chat bot", '', "Can't connect to game since there are too many players in it!");
+    $("#roomName").text("Can't connect to game!");
+});
+
 socket.on('live', status => {
-    gameLive = status;
     inRoom = status;
+    createMessage("Chat Bot", "", "Press the \"Start Game\" button to play!");
 });
 
 socket.on('notInRoom', message => {
@@ -184,6 +204,10 @@ function getFirstOpenCell(index) {
     return null;
 }
 
+function getCell(row, col) {
+    return rows[row][col];
+}   
+
 function clearColor(index) {
     let topCell = topCells[index];
     topCell.classList.remove("yellow");
@@ -204,7 +228,7 @@ function checkWinningCells(cells) {
     for (let cell of cells) {
         cell.classList.add("win");
     }
-    statusSpan.textContent = `${isMyTurn ? "Yellow": "Red"} has won!`;
+    statusSpan.textContent = `${isMyTurn ? myColor: opponentColor} has won!`;
     return true;
 }
 
@@ -216,142 +240,12 @@ function resetGameBoard() {
             cell.classList.remove("win");
         }
     }
-    gameLive = true;
-    isMyTurn = true;
     statusSpan.textContent = "";
 }
 
-// function checkStatusGame(cell) {
-//     let color = getColorofCell(cell);
-//     if (!color) return;
-//     let [row, col] = getCellLocation(cell);
-
-//     // check horizontally
-//     let winningCells = [cell];
-//     let checkRow = row;
-//     let checkCol = col - 1;
-//     while (checkCol >= 0) {
-//         let cellToCheck = rows[checkRow][checkCol];
-//         if (color === getColorofCell(cellToCheck)) {
-//             winningCells.push(cellToCheck);
-//             checkCol--;
-//         } else {
-//             break;
-//         }
-//     }
-//     checkCol = col + 1;
-//     console.log(checkRow, checkCol);
-//     while (checkCol <= 6) {
-//         let cellToCheck = rows[checkRow][checkCol];
-//         if (color === getColorofCell(cellToCheck)) {
-//             winningCells.push(cellToCheck);
-//             checkCol++;
-//         } else {
-//             break;
-//         }
-//     }
-
-//     let hasWon = checkWinningCells(winningCells);
-//     if (hasWon) return;
-
-//     // check vertically
-//     winningCells = [cell];
-//     checkRow = row - 1;
-//     checkCol = col;
-//     while (checkRow >= 0) {
-//         let cellToCheck = rows[checkRow][checkCol];
-//         if (color === getColorofCell(cellToCheck)) {
-//             winningCells.push(cellToCheck);
-//             checkRow--;
-//         } else {
-//             break;
-//         }
-//     }
-//     checkRow = row + 1;
-//     while (checkRow <= 5) {
-//         let cellToCheck = rows[checkRow][checkCol];
-//         if (color === getColorofCell(cellToCheck)) {
-//             winningCells.push(cellToCheck);
-//             checkRow++;
-//         } else {
-//             break;
-//         }
-//     }
-
-//     hasWon = checkWinningCells(winningCells);
-//     if (hasWon) return;
-
-//     // check diagnoally (forwardslash)
-//     winningCells = [cell];
-//     checkRow = row + 1;
-//     checkCol = col - 1;
-//     while (checkCol >= 0 && checkRow <= 5) {
-//         let cellToCheck = rows[checkRow][checkCol];
-//         if (color === getColorofCell(cellToCheck)) {
-//             winningCells.push(cellToCheck);
-//             checkRow++;
-//             checkCol--;
-//         } else {
-//             break;
-//         }
-//     }
-//     checkRow = row - 1;
-//     checkCol = col + 1;
-//     while (checkCol <= 6 && checkRow >= 0) {
-//         let cellToCheck = rows[checkRow][checkCol];
-//         if (color === getColorofCell(cellToCheck)) {
-//             winningCells.push(cellToCheck);
-//             checkRow--;
-//             checkCol++;
-//         } else {
-//             break;
-//         }
-//     }
-
-//     hasWon = checkWinningCells(winningCells);
-//     if (hasWon) return;
-
-//     // check diagnoally (backslash)
-//     winningCells = [cell];
-//     checkRow = row - 1;
-//     checkCol = col - 1;
-//     while (checkCol >= 0 && checkRow >= 0) {
-//         let cellToCheck = rows[checkRow][checkCol];
-//         if (color === getColorofCell(cellToCheck)) {
-//             winningCells.push(cellToCheck);
-//             checkRow--;
-//             checkCol--;
-//         } else {
-//             break;
-//         }
-//     }
-//     checkRow = row + 1;
-//     checkCol = col + 1;
-//     while (checkCol <= 6 && checkRow <= 5) {
-//         let cellToCheck = rows[checkRow][checkCol];
-//         if (color === getColorofCell(cellToCheck)) {
-//             winningCells.push(cellToCheck);
-//             checkRow++;
-//             checkCol++;
-//         } else {
-//             break;
-//         }
-//     }
-
-//     hasWon = checkWinningCells(winningCells);
-//     if (hasWon) return;
-
-//     // let rowsWithoutTop = rows.slice();
-//     // for (let row of rows) {
-//     //     for (let cell of row) {
-            
-//     //     }
-//     // }
-// }
-
 function checkStatusGame(cell) {
     let color = getColorofCell(cell);
-    if (!color) return;
+    if (!color) return null;
     let [row, col] = getCellLocation(cell);
 
     // check horizontally
@@ -379,7 +273,7 @@ function checkStatusGame(cell) {
     }
 
     let hasWon = checkWinningCells(winningCells);
-    if (hasWon) return;
+    if (hasWon) return true;
 
     // check vertically
     winningCells = [];
@@ -406,7 +300,7 @@ function checkStatusGame(cell) {
     }
 
     hasWon = checkWinningCells(winningCells);
-    if (hasWon) return;
+    if (hasWon) return true;
 
     // check diagnoally (forwardslash)
     winningCells = [];
@@ -436,7 +330,7 @@ function checkStatusGame(cell) {
     }
 
     hasWon = checkWinningCells(winningCells);
-    if (hasWon) return;
+    if (hasWon) return true;
 
     // check diagnoally (backslash)
     winningCells = [];
@@ -466,7 +360,7 @@ function checkStatusGame(cell) {
     }
 
     hasWon = checkWinningCells(winningCells);
-    if (hasWon) return;
+    if (hasWon) return true;
 
     let rowsWithoutTop = rows.slice(0, 6);
     for (let r of rowsWithoutTop) {
@@ -480,15 +374,36 @@ function checkStatusGame(cell) {
 
     gameLive = false;
     statusSpan.textContent = "Game is a tie!";
+    return false;
+}
+
+function replayGame(moves) {
+    $("#st").removeClass("startGame");
+    $("#st").addClass("hidden");
+    let x = 0;
+    let row, col;
+    for (let move of moves) {
+        x++;
+        let cell = getFirstOpenCell(move);
+        cell.classList.add(isMyTurn ? myColor: opponentColor);
+        isMyTurn = !isMyTurn;
+        if (moves.length == x) {
+            [row, col] = getCellLocation(cell);
+        }
+    }
+    gameLive = true;
+    let lastCell = getCell(row, col);
+    let status = checkStatusGame(lastCell);
 }
 
 $(".cell").hover(function(eventIn) {
     if (!gameLive) return;
+    if (!isMyTurn) return; 
     let cell = eventIn.target;
     let [row, col] = getCellLocation(cell);
 
     let topCell = topCells[col];
-    topCell.classList.add(isMyTurn ? "yellow": "red");
+    topCell.classList.add(isMyTurn ? myColor: opponentColor);
 }
 ,function(eventOut) {
     let cell = eventOut.target;
@@ -498,6 +413,8 @@ $(".cell").hover(function(eventIn) {
 
 $(".cell").click(function(event) {
     if (!gameLive) return;
+    if (!inRoom) return;
+    if (!isMyTurn) return; 
 
     let cell = event.target;
     let [row, col] = getCellLocation(cell);
@@ -506,18 +423,72 @@ $(".cell").click(function(event) {
     
     if (!openCell) return;
 
-    openCell.classList.add(isMyTurn ? "yellow": "red");
+    statusSpan.textContent = "Opponents turn.....";
+
+    openCell.classList.add(isMyTurn ? myColor: opponentColor);
     checkStatusGame(openCell);
 
     isMyTurn = !isMyTurn;
     clearColor(col);
 
-    if (gameLive) {
-        let topCell = topCells[col];
-        topCell.classList.add(isMyTurn ? "yellow": "red");
-    }
+    socket.emit('move', col);
 });    
+
+$(".startGame").click(function(event) {
+    if (!inRoom) return;
+    let num = getRandomInt(0, 2);
+    socket.emit('startGame', num);
+});
+
+socket.on('moveHistory', (moves) => {
+    replayGame(moves);
+});
+
+socket.on('brodMove', (move) => {
+    statusSpan.textContent = "";
+    let opponentCellMove = getFirstOpenCell(move);
+    opponentCellMove.classList.add(isMyTurn ? myColor: opponentColor);
+    let status = checkStatusGame(opponentCellMove);
+    if (status) {
+        console.log();
+    }
+    isMyTurn = true;
+});
+
+socket.on('color', (c) => {
+    myColor = c;
+    document.cookie = `color=${c}`;
+    document.cookie = `gameLive=true`;
+    createMessage("Chat Bot", '', `The game has started you are ${myColor}`);
+    if (c == "yellow") {
+        opponentColor = "red";
+        isMyTurn = true;
+    } else {
+        opponentColor = "yellow";
+        isMyTurn = false;
+        statusSpan.textContent = "Opponents turn.....";
+    }
+    gameLive = true;
+    $("#st").removeClass("startGame");
+    $("#st").addClass("hidden");
+    console.log(myColor);
+});
+
+socket.on('resetCall', () => {
+    $("#st").addClass("startGame");
+    $("#st").removeClass("hidden");
+    resetGameBoard();
+});
 
 $(".reset").click(function(event) {
     resetGameBoard();
+    socket.emit('reset');
+    $("#st").addClass("startGame");
+    $("#st").removeClass("hidden");
 });    
+
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min) + min); 
+}

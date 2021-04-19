@@ -4,7 +4,9 @@ let socketio = require('socket.io');
 const { v4: uuidv4 } = require('uuid');
 let http = require('http');
 let formatMessage = require('./public/scripts/utils/messages.js');
-let { userJoin, getCurrentUser, userLeave, getRoomUsers, getCurrentUserbyName} = require('./public/scripts/utils/users.js');
+let {userJoin, getCurrentUser, userLeave, getRoomUsers, getCurrentUserbyName} = require('./public/scripts/utils/users.js');
+let {addPlayer, getCurrentPlayer, getRoomPlayers, playerLeave} = require('./public/scripts/utils/players.js');
+let {addGame, getCurrentGame, getGames} = require('./public/scripts/utils/games.js');
 const modelUsers = require('./public/scripts/models/usersModel.js');
 const { Cookie } = require('express-session');
 
@@ -24,6 +26,7 @@ server.listen(app.get('port'), function() {
 
 let adminName = "Chat Bot";
 let welcomeMessage = "The room code above is used to connect to a game. Send it to your opponent.";
+let roomSize = 2;
 
 function extractCookies(cookies) {
     cookies = cookies
@@ -38,50 +41,79 @@ function extractCookies(cookies) {
 io.on('connection', socket => {
     let cookies = socket.handshake.headers.cookie;
     let dictCookies = extractCookies(cookies);
-    if ("room" in dictCookies && "username" in dictCookies) {
-        if (dictCookies.room !== "undefined" && dictCookies.signedIn == "true") {
-            if (getCurrentUser(socket.id)) { 
-                userJoin(socket.id, dictCookies.username, dictCookies.room);
+    console.log("new connection... " + socket.id);
+    if (getRoomUsers(dictCookies.room).length < roomSize) {
+        if ("room" in dictCookies && "username" in dictCookies) {
+            if (dictCookies.room !== "undefined" && dictCookies.signedIn == "true") {
+                if (!getCurrentUser(socket.id)) { 
+                    userJoin(socket.id, dictCookies.username, dictCookies.room);
+                    addPlayer(socket, null, dictCookies.room);
+                }
+                let game = getCurrentGame(dictCookies.room);
+                if (game) {
+                    socket.emit('moveHistory' , game.moves);
+                }
+    
+                socket.emit('rejoin', ({
+                    r: dictCookies.room, 
+                    n: dictCookies.username,
+                }));
+    
+                socket.join(dictCookies.room);
+        
+                socket.emit('message', formatMessage(adminName, 'Welcome back to Connect 4!'));
+        
+                socket.broadcast.to(dictCookies.room).emit('message', formatMessage(adminName, `${dictCookies.username} has joined the Game`));
+                if (getRoomUsers(dictCookies.room).length > 1) {
+                    io.to(dictCookies.room).emit('live', true);
+                }
+        
+                io.to(dictCookies.room).emit('roomUsers', {
+                    rm: dictCookies.room,
+                    users: getRoomUsers(dictCookies.room),
+                }); 
             }
-
-            socket.emit('rejoin', ({
-                r: dictCookies.room, 
-                n: dictCookies.username,
-            }));
-
-            socket.join(dictCookies.room);
-
-            userJoin(socket.id, dictCookies.username, dictCookies.room);
-    
-            socket.emit('message', formatMessage(adminName, 'Welcome back to Connect 4!'));
-    
-            socket.broadcast.to(dictCookies.room).emit('message', formatMessage(adminName, `${dictCookies.username} has joined the Game`));
-            socket.emit('live', true);
-    
-            io.to(dictCookies.room).emit('roomUsers', {
-                rm: dictCookies.room,
-                users: getRoomUsers(dictCookies.room),
-            }); 
         }
+    } else {
+        socket.emit('tooManyUsers');
     }
 
-    socket.on('createRoom', ({username, room}) => {
-        let user = userJoin(socket.id, username, room);
+    socket.on('startGame', (num) => {
+        let user = getCurrentPlayer(socket);
+        let users = getRoomPlayers(user.room);
+
+        addGame([], user.room);
+
+        if (num == 0) {
+            users[0].socket.emit('color', "yellow");
+            users[1].socket.emit('color', "red");
+        } else {
+            users[0].socket.emit('color', "red");
+            users[1].socket.emit('color', "yellow");
+        }
+    });
+
+    socket.on('createRoom', (room) => {
+        if (getRoomUsers(room).length > roomSize-1) {
+            socket.emit('tooManyUsers');
+            return;
+        }
+        cookies = socket.handshake.headers.cookie;
+        dictCookies = extractCookies(cookies);
+        let user = userJoin(socket.id, dictCookies.username, room);
+        addPlayer(socket, null, room);
 
         socket.emit('room', ({
             r: room,
-            n: username,
+            n: dictCookies.username,
         }));
-
-        cookies = socket.handshake.headers.cookie;
-        dictCookies = extractCookies(cookies);
 
         socket.join(user.room);
 
         socket.emit('message', formatMessage(adminName, 'Welcome to Connect 4!'));
         socket.emit('message', formatMessage(adminName, welcomeMessage));
         
-        socket.broadcast.to(user.room).emit('message', formatMessage(adminName, `${username} has joined the Game`));
+        socket.broadcast.to(user.room).emit('message', formatMessage(adminName, `${dictCookies.username} has joined the Game`));
 
         io.to(user.room).emit('roomUsers', {
             rm: user.room,
@@ -89,29 +121,35 @@ io.on('connection', socket => {
         }); 
     });
 
-    socket.on('joinRoom', ({username, room}) => {
-        let user = userJoin(socket.id, username, room);
+    socket.on('joinRoom', (room) => {
+        if (getRoomUsers(room).length > roomSize-1) {
+            socket.emit('tooManyUsers');
+            return;
+        }
+        cookies = socket.handshake.headers.cookie;
+        dictCookies = extractCookies(cookies);
+        let user = userJoin(socket.id, dictCookies.username, room);
+        addPlayer(socket, null, room);
 
         socket.emit('room', ({
             r: room,
-            n: username,
+            n: dictCookies.username,
         }));
 
         socket.join(user.room);
 
         socket.emit('message', formatMessage(adminName, 'Welcome to Connect 4!'));
 
-        socket.broadcast.to(user.room).emit('message', formatMessage(adminName, `${username} has joined the Game`));
-        socket.broadcast.to(user.room).emit('live', true);
-        socket.emit('live', true);
+        socket.broadcast.to(user.room).emit('message', formatMessage(adminName, `${dictCookies.username} has joined the Game`));
+        if (getRoomUsers(user.room).length > 1) {
+            io.to(user.room).emit('live', true);
+        }
 
         io.to(user.room).emit('roomUsers', {
             rm: user.room,
             users: getRoomUsers(user.room),
         }); 
     });
-
-    console.log("New Connection...", socket.id);
 
     socket.on('chatMessage', (msg) => {
         let user = getCurrentUser(socket.id);
@@ -124,18 +162,23 @@ io.on('connection', socket => {
 
     socket.on('move', (move) => {
         let user = getCurrentUser(socket.id);
-        console.log(move);
-        io.to(user.room).emit('move', move);
+        socket.broadcast.to(user.room).emit('brodMove', move);
+        let game = getCurrentGame(user.room);
+        game.moves.push(move);
     });
 
-    socket.on('move', (move) => {
+    socket.on('reset', () => {
         let user = getCurrentUser(socket.id);
-        console.log(move);
-        io.to(user.room).emit('move', move);
+        let game = getCurrentGame(user.room);
+        game.moves = [];
+        socket.broadcast.to(user.room).emit('resetCall');
     });
 
     socket.on('disconnect', () => {
         let user = userLeave(socket.id);
+        playerLeave(socket);
+        cookies = socket.handshake.headers.cookie;
+        dictCookies = extractCookies(cookies);
 
         if (user) {
             io.to(user.room).emit('message', formatMessage(adminName, `${user.username} has left the chat`));
@@ -144,10 +187,12 @@ io.on('connection', socket => {
                 users: getRoomUsers(user.room),
             }); 
         }
+        io.to(dictCookies.room).emit('live', false);
     });
 
     socket.on('leftRoom', () => {
         let user = userLeave(socket.id);
+        playerLeave(socket);
 
         if (user) {
             socket.leave(user.room);
@@ -157,6 +202,7 @@ io.on('connection', socket => {
                 users: getRoomUsers(user.room),
             }); 
         }
+        io.to(user.room).emit('live', false);
     });
 });
 
@@ -221,20 +267,20 @@ app.post('/processLogin', function(request, response) {
     response.cookie('username', request.body.username);
     response.cookie('signedIn', "true");
 
-    modelUsers.User.find({username: request.session.username}).then(function(playerInfo){
+    modelUsers.User.find({username: request.session.username}).then(function(playerInfo) {
        for (var i = 0; i < playerInfo.length; i++){
-           if ( request.body.username == playerInfo[i].username &&  request.body.password == playerInfo[i].password) {
+           if (request.body.username == playerInfo[i].username &&  request.body.password == playerInfo[i].password) {
                rightCombo = true;           
             }
        }
-       if (rightCombo == true){
+       if (rightCombo == true) {
             response.render("game", {
                 pageTitle: "Connect 4!",
                 resp: "Login Successful!",
                 signedIn: true,
             });
        }
-       else{
+       else {
             response.render("login", {
                 pageTitle: "Connect 4!",
                 resp: "Invalid Username or password!",
@@ -262,9 +308,8 @@ app.post('/processSignUp',function(request, response) {
         password: request.body.password,
     }
     
-    console.log(userData);
     modelUsers.User.find({username: request.session.username}).then(function(playerInfo) {
-            if ( playerInfo.length == 0){
+            if (playerInfo.length == 0){
                 newAccount = true;           
             }
             
@@ -286,19 +331,20 @@ app.post('/processSignUp',function(request, response) {
                     response.render("game", {
                         pageTitle: "Connect 4!",
                         resp: "Sign-up Successful!",
+                        signedIn: true,
                     });
                 }
             });
         }
-        else{
-            if(userGreaterThanFour == false && passGreaterThanSix == false) {
+        else {
+            if (userGreaterThanFour == false && passGreaterThanSix == false) {
                 console.log('Error in input');
                 response.render("sign-up", {
                     pageTitle: "Connect 4!",
                     resp: "Both username and password values are invalid",
                 });
             }
-            else if(userGreaterThanFour == false) {
+            else if (userGreaterThanFour == false) {
                 console.log('Error in input');
                 response.render("sign-up", {
                     pageTitle: "Connect 4!",
@@ -306,14 +352,14 @@ app.post('/processSignUp',function(request, response) {
                 });
             }
 
-            else if(passGreaterThanSix == false) {
+            else if (passGreaterThanSix == false) {
                 console.log('Error in input');
                 response.render("sign-up", {
                     pageTitle: "Connect 4!",
                     resp: "Password must be atleast 6 characters",
                 });
             }
-            else{
+            else {
                 console.log('Error in input');
                 response.render("sign-up", {
                     pageTitle: "Connect 4!",
@@ -329,6 +375,8 @@ app.get('/logout', function(request, response) {
     request.session.passsword = '';
 
     response.cookie('signedIn', "false");
+    response.cookie('username', "undefined");
+    response.cookie('room', "undefined");
     response.render("game", {
         pageTitle: "Connect 4!",
         resp: "Signed Out!",
