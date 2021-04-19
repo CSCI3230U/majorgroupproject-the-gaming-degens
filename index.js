@@ -212,8 +212,6 @@ io.on('connection', socket => {
         }
         io.to(user.room).emit('live', false);
     });
-
-    console.log(getUsers());
 });
 
 app.use(express.urlencoded({extended: false}));
