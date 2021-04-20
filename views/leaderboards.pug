@@ -1,2 +1,11 @@
 extends toplevel 
-block content 
+block content
+    link(rel='stylesheet' href='styles/style.css')
+    p#IsValid=resp
+    form#Form(method='post' action='/createChart' class='form')
+        head
+            title leaderBoardsGraph
+        body
+        .graph 
+            div.graphTitle
+

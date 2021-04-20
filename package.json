@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/CSCI3230U/majorgroupproject-the-gaming-degens#readme",
   "dependencies": {
+    "d3": "3",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "io-session-handler": "^1.0.74",
