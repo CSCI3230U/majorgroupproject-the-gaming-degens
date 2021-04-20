@@ -4,10 +4,10 @@ let socketio = require('socket.io');
 const { v4: uuidv4 } = require('uuid');
 let http = require('http');
 let formatMessage = require('./public/scripts/utils/messages.js');
-let {userJoin, getCurrentUser, userLeave, getRoomUsers, getCurrentUserbyName, getUsers, getInRoom} = require('./public/scripts/utils/users.js');
+let {userJoin, getCurrentUser, userLeave, getRoomUsers, getUsers, getInRoom} = require('./public/scripts/utils/users.js');
 let {addPlayer, getCurrentPlayer, getRoomPlayers, playerLeave} = require('./public/scripts/utils/players.js');
 let {addGame, getCurrentGame, getGames} = require('./public/scripts/utils/games.js');
-let {addChat, getCurrentChat, getchats} = require('./public/scripts/utils/history.js');
+let {addChat, getCurrentChat, getChats} = require('./public/scripts/utils/history.js');
 const modelUsers = require('./public/scripts/models/usersModel.js');
 
 let app = express();

@@ -21,7 +21,9 @@ function addGame(moves, room) {
 function getGames() {
     return games;
 }
-
+/**
+ * @returns game in certain game room 
+ */
 function getCurrentGame(room) {
     return games.find(game => game.room === room);
 }

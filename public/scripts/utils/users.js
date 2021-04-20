@@ -22,19 +22,21 @@ function userJoin(id, username, room) {
 function getUsers() {
     return users;
 }
-
+/**
+ * @returns user with socket id
+ */
 function getCurrentUser(id) {
     return users.find(user => user.id === id);
 }
-
+/**
+ * @returns if a user is in a certain room
+ */
 function getInRoom(name, room) {
     return users.find(user => user.username === name && user.room === room);
 }
-
-function getCurrentUserbyName(id) {
-    return users.find(user => user.id === id);
-}
-
+/**
+ * Removes user from list of users
+ */
 function userLeave(id) {
     let index = users.findIndex(user => user.id === id);
 
@@ -42,9 +44,11 @@ function userLeave(id) {
         return users.splice(index, 1)[0];
     }
 }
-
+/**
+ * @returns users in a room
+ */
 function getRoomUsers(room) {
     return users.filter(user => user.room === room);
 }
 
-module.exports = {userJoin, getCurrentUser, userLeave, getRoomUsers, getCurrentUserbyName, getUsers, getInRoom};
+module.exports = {userJoin, getCurrentUser, userLeave, getRoomUsers, getUsers, getInRoom};

@@ -20,12 +20,14 @@ function addChat(id, room, numMsg, messages) {
     return chat;
 }
 
-function getchats() {
+function getChats() {
     return chats;
 }
-
+/**
+ * @returns chat in certain game room 
+ */
 function getCurrentChat(room) {
     return chats.find(game => game.room === room);
 }
 
-module.exports = {addChat, getCurrentChat, getchats};
+module.exports = {addChat, getCurrentChat, getChats};

@@ -18,15 +18,21 @@ function addPlayer(socket, color, room) {
 
     return user;
 }
-
+/**
+ * @returns player with socket
+ */
 function getCurrentPlayer(socket) {
     return users.find(user => user.socket === socket);
 }
-
+/**
+ * @returns all players in certain room
+ */
 function getRoomPlayers(room) {
     return users.filter(user => user.room === room);
 }
-
+/**
+ * Remove player from list 
+ */
 function playerLeave(socket) {
     let index = users.findIndex(user => user.socket === socket);
 
