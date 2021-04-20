@@ -1,6 +1,7 @@
 let express = require('express');
 let session = require('express-session');
 let socketio = require('socket.io');
+const d3 = require('d3');
 const { v4: uuidv4 } = require('uuid');
 let http = require('http');
 let formatMessage = require('./public/scripts/utils/messages.js');
@@ -358,7 +359,91 @@ app.get('/login', function(request, response) {
     });
 });
 
-//Process logining
+//Creates chart for leaderboards
+app.post('/createChart', function(request, response) {
+
+    var mockWins = {
+        "Joey": 6.0,
+        "Beth": 5.0,
+        "Emma": 4.0,
+        "Matt": 2.0,
+        "Tyler": 0.0
+    };
+
+    var data = [], item;
+
+    for (var username in mockWins) {
+        item = {};
+        item.username = username;
+        item.wins = mockWins[username];
+        data.push(item);
+    }
+
+    d3.selectAll("svg > *").remove();
+    const colourScale = d3.scaleLinear()
+                        .domain([0, 1])
+                        .range(['Lavender', 'RoyalBlue']);
+    
+    var svg = d3.select("svg"),
+    margin = 200,
+    width = svg.attr("width") - margin,
+    height = svg.attr("height") - margin;
+
+    svg.append('text')
+    .attr('x', width / 2)
+    .attr('y', margin * 0.5 - 20)
+    .attr("font-size", "18px")
+    .attr('text-anchor', 'middle')
+    .text('Grade Distribution');
+
+    var xScale = d3.scaleBand().range ([0, width]).padding(0.4),
+        yScale = d3.scaleLinear().range ([height, 0]);
+
+    var g = svg.append("g")
+        .attr("transform", "translate(" + 100 + "," + 100 + ")");
+
+    xScale.domain(data.map(function(d) { return d.username; }));
+    yScale.domain([0, d3.max(data, function(d) { return d.wins; })]);
+
+    g.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(xScale))
+    .append("text")
+    .attr("y", height - margin - 50)
+    .attr("x", width - margin)
+    .attr("font-size", "20px")
+    .attr("text-anchor", "end")
+    .attr("fill", "black")
+    .text("Player");
+
+    g.append("g")
+    .call(d3.axisLeft(yScale).tickFormat(function(d){
+        return  d;
+    }).ticks(10))
+    .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 50)
+    .attr("x", - margin*0.5 + 20)
+    .attr("dy", "-5.1em")
+    .attr("font-size", "20px")
+    .attr("text-anchor", "end")
+    .attr("fill", "black")
+    .text("Number of wins");
+
+    g.selectAll(".bar")
+    .data(data)
+    .enter().append("rect")
+    .attr("class", "bar")
+    .attr("x", function(d) { return xScale(d.username); })
+    .attr("y", function(d) { return yScale(d.wins); })
+    .attr("width", xScale.bandwidth())
+    .attr("height", function(d) { return height - yScale(d.wins); })
+    .attr("fill", (data) => colourScale(data.wins));
+
+
+});
+
+//Process login
 app.post('/processLogin', function(request, response) {
     request.session.signedIn = true;
     request.session.username = request.body.username;
