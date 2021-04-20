@@ -63,7 +63,7 @@ function extractCookies(cookies) {
 }
 
 /**
- * Server side connection to handle all events that can happen on the page
+ * Server side connection to handle all events that can happen on the site
  */
 io.on('connection', socket => {
     let pushUsers = false;
@@ -224,8 +224,8 @@ io.on('connection', socket => {
         }
     });
     /*
-    * When a user atempts to enter a designated room, first test if there are too many users
-    * if room is not full, update te chat room with list of the players and display message
+    * When a user attempts to enter a designated room, first test if there are too many users
+    * if room is not full, update the chat room with list of the players and display message
     * someone has joined
     */
     socket.on('joinRoom', (room) => {
@@ -367,7 +367,7 @@ app.use(session({
 }));
 
 /*
-* When connecting to localhost:3000 the game page will be present, this is similar to the '/home' tab
+* When connecting to the server the game page will be present, this is similar to the '/home' section
 */
 app.get('/', function(request, response) {
     response.render("game", {
@@ -388,7 +388,7 @@ app.get('/gameRoom', function(request, response) {
 });
 
 /*
-* Routes to the home page of the connect4 where users are able to naviagte to anywhere on the page
+* Routes to the home page of the Connect 4 where users are able to naviagte to anywhere on the page
 */
 app.get('/home', function(request, response) {
     let dictCookies = extractCookies(request.headers.cookie);
@@ -405,7 +405,7 @@ app.get('/home', function(request, response) {
     }
 });
 /*
-* Routes to the leaderboards tab
+* Routes to the leaderboards section
 */
 app.get('/leaderboards', function(request, response) {
     let dictCookies = extractCookies(request.headers.cookie);
@@ -423,7 +423,7 @@ app.get('/leaderboards', function(request, response) {
 });
 
 /*
-* Routing to the sign-up tab
+* Routing to the sign-up section
 */
 app.get('/sign-up', function(request, response) {
     response.render("sign-up", {
@@ -432,7 +432,7 @@ app.get('/sign-up', function(request, response) {
 });
 
 /*
-* Routing to the login tab
+* Routing to the login section
 */
 app.get('/login', function(request, response) {
     response.render("login", {
