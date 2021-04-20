@@ -40,7 +40,8 @@ body {
 }
 
 .navbar {
-    height: 60px;
+    height: auto;
+    width: auto;
 }
 
 #Form {
@@ -157,7 +158,7 @@ body {
     font-weight: bold;
     padding: 15px 30px;
     text-transform: uppercase;
-    margin-left: 0px;
+    margin-right: 350px;
 }
 
 .reset:hover {
