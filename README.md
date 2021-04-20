@@ -1,5 +1,7 @@
 # Major Group Project
 
+Link for powerpoint: https://docs.google.com/presentation/d/1NmPOcTB4u3igu4zg-6CFWkJyPWuBiQ-flENqEtcd388/edit#slide=id.p1
+
 Before you submit your project, modify the following table to include everyone's full name and GitHub usernames:
 
 | Group Member Name          | GitHub Username    |
