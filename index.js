@@ -359,7 +359,7 @@ app.get('/login', function(request, response) {
     });
 });
 
-//Creates chart for leaderboards
+//Creates chart for leaderboards (not done)
 app.post('/createChart', function(request, response) {
 
     var mockWins = {
@@ -442,6 +442,7 @@ app.post('/createChart', function(request, response) {
 
 
 });
+
 
 //Process login
 app.post('/processLogin', function(request, response) {
