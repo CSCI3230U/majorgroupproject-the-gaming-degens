@@ -93,6 +93,16 @@ $("#joinRoom").click(function(event) {
     });
 });     
 
+$("#leader").click(function(event) {
+    socket.emit('setupData');
+    // try {
+    //     let codeHolder  = document.getElementById("code");
+    //     codeHolder.value = room;
+    //     document.getElementById('secondForm').submit();
+    // } catch (error) {
+    //     console.log(error);
+    // }
+});     
 
 /**
  * When leave room button is clicked, leave the room

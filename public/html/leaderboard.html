@@ -1,0 +1,51 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css" />
+    <script type="text/javascript" src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <script defer type="text/javascript" src="/majorgroupproject-the-gaming-degens/public/scripts/multiPlayerLogic.js"> </script>
+    <link rel="stylesheet" href="/majorgroupproject-the-gaming-degens/public/styles/style.css">
+    <title>Connect Four!</title>
+</head>
+<body>
+    <nav class="navbar is-dark" role="navigation" aria-label="main navigation"><a class="navbar-item logo"><img src="/majorgroupproject-the-gaming-degens/public/images/logo1.png" width="40" height="100" /></a><a class="navbar-burger burger" role="button" aria-label="menu" aria-expanded="false" data-target="navMenu"><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></a>
+        <div class="navbar-menu" id="sudoku nav">
+            <div class="navbar-start"><a class="navbar-item" href="/home">Home</a>
+                <div class="navbar-item has-dropdown is-hoverable"><a class="navbar-link">Play Multiplayer</a>
+                    <div class="navbar-dropdown"><a class="navbar-item" id="createRoom">Create Room</a><a class="navbar-item" id="joinRoom">Join Room</a></div>
+                </div><a class="navbar-item" id="leader">Leaderboards</a>
+            </div>
+        </div>
+        <div class="navbar-end">
+            <div class="navbar-item">
+                <div class="buttons"><a class="button is-danger" href="/sign-up">Sign-Up</a><a class="button is-light" href="/login">Log in</a></div>
+            </div>
+        </div>
+    </nav><input class="hidden input" id="gameCode" type="text" name="code" />
+    <form class="form" id="form" method="get" action="/gameRoom"><input class="input" id="code" type="hidden" name="code" /></form>
+    <form class="form" id="secondForm" method="get" action="/leaderboards"><input class="input" id="data" type="hidden" name="data" /></form>
+
+    <div id="chart"></div>
+
+    <div class="chat-container">
+        <header class="chat-header">
+            <h1><i class="fas fa-smile">Connect 4 Chat</i></h1><button class="btn"><a class="fas fa-paper-plane" id="lev">Leave Room</a></button>
+        </header>
+        <main class="chat-main">
+            <div class="chat-sidebar">
+                <h3><i class="fas fa-comments">Room Name:</i></h3>
+                <h2 id="room-name"></h2>
+                <h3><i class="fas fa-users">Users</i></h3>
+                <ul id="users"></ul>
+            </div>
+            <div class="chat-messages"></div>
+        </main>
+        <div class="chat-form-container">
+            <form id="chat-form"><input id="msg" type="text" placeholder="Enter Message" required="" autocomplete="off" /><button class="btn"><i class="fas fa-paper-plane">Send</i></button></form>
+        </div>
+    </div>
+</body>
+</html>

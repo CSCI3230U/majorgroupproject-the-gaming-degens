@@ -45,6 +45,7 @@ let welcomeMessage = "The room code above is used to connect to a game. Send it 
 let roomSize = 2;
 let chatHistSize = 12;
 let players = getUsers(); //This will store the information of the players and be used alongside with the database
+let dataLeaders = [];
 
 /**
  * Get the cookies of the connected users 
@@ -351,6 +352,30 @@ io.on('connection', socket => {
         }
         io.to(user.room).emit('live', false);
     });
+    /*
+    * Creates graph data and graph (not working erros with pug)
+    */
+    socket.on('setupData', () => {
+        let x = 0;
+        modelUsers.User.find().sort().then(function (result) {
+            for (let dict of result) {
+                let n = dict.username;
+                let w = dict.wins;
+                if (x < 10 && dict.wins) {
+                    let test = {name: n, wins: w};
+                    console.log(test);
+                    dataLeaders.push(test);
+                    x++;
+                } else {
+                    let test = {name: n, wins: w};
+                    dataLeaders.push(test);
+                    dataLeaders.shift();
+                }
+            }
+            console.log("data: ",dataLeaders.length);
+            creatGraph(dataLeaders);
+        });
+    });
 
     console.log("Users connected to server: ", getUsers());
 });
@@ -407,20 +432,20 @@ app.get('/home', function(request, response) {
 /*
 * Routes to the leaderboards section
 */
-app.get('/leaderboards', function(request, response) {
-    let dictCookies = extractCookies(request.headers.cookie);
-    if (dictCookies.signedIn == 'true') {
-        response.render("leaderboards", {
-            pageTitle: "Connect 4 Leaderboards",
-            signedIn: true,
-        });
-    } else {
-        response.render("leaderboards", {
-            pageTitle: "Connect 4 Leaderboards",
-            signedIn: false,
-        });
-    }
-});
+// app.get('/leaderboards', function(request, response) {
+//     let dictCookies = extractCookies(request.headers.cookie);
+//     if (dictCookies.signedIn == 'true') {
+//         response.render("leaderboards", {
+//             pageTitle: "Connect 4 Leaderboards",
+//             signedIn: true,
+//         });
+//     } else {
+//         response.render("leaderboards", {
+//             pageTitle: "Connect 4 Leaderboards",
+//             signedIn: false,
+//         });
+//     }
+// });
 
 /*
 * Routing to the sign-up section
@@ -443,88 +468,103 @@ app.get('/login', function(request, response) {
 /*
 * Creates chart for leaderboards (not done)
 */
-app.post('/createChart', function(request, response) {
+function creatGraph(data) {
+    // var mockWins = {
+    //     "Joey": 6.0,
+    //     "Beth": 5.0,
+    //     "Emma": 4.0,
+    //     "Matt": 2.0,
+    //     "Tyler": 0.0
+    // };
 
-    var mockWins = {
-        "Joey": 6.0,
-        "Beth": 5.0,
-        "Emma": 4.0,
-        "Matt": 2.0,
-        "Tyler": 0.0
-    };
+    // var data = [], item;
 
-    var data = [], item;
+    // for (var username in result) {
+    //     item = {};
+    //     item.username = username;
+    //     item.wins = mockWins[username];
+    //     data.push(item);
+    // }
 
-    for (var username in mockWins) {
-        item = {};
-        item.username = username;
-        item.wins = mockWins[username];
-        data.push(item);
-    }
+    //d3.select('svg').remove();
+    const margin = 50;
+    const width = 500;
+    const height = 400;
+    const chartWidth = width - 2 * margin;
+    const chartHeight = height - 2 * margin;
 
-    d3.selectAll("svg > *").remove();
-    const colourScale = d3.scaleLinear()
-                        .domain([0, 1])
-                        .range(['Lavender', 'RoyalBlue']);
+    const colourScale = d3.scale.linear()
+                            .domain([0, 1])
+                            .range(['white', 'blue']);
     
-    var svg = d3.select("svg"),
-    margin = 200,
-    width = svg.attr("width") - margin,
-    height = svg.attr("height") - margin;
+    var xScale = d3.scale.band() // discrete, bucket
+                        .domain(data.map((data) => data.name))
+                        .range([0, chartWidth])
+                        .padding(0.3);
+    
+    var yScale = d3.scale.linear()
+                        .domain([0, 1])
+                        .range([chartHeight, 0]);
 
+    let svg = d3.select('#chart')
+                    .append('svg')
+                        .attr('width', width)
+                        .attr('height', height);
+
+    // title
     svg.append('text')
-    .attr('x', width / 2)
-    .attr('y', margin * 0.5 - 20)
-    .attr("font-size", "18px")
-    .attr('text-anchor', 'middle')
-    .text('Grade Distribution');
+            .attr('x', width / 2)
+            .attr('y', margin)
+            .attr('text-anchor', 'middle')
+            .text('Grade Distribution');
 
-    var xScale = d3.scaleBand().range ([0, width]).padding(0.4),
-        yScale = d3.scaleLinear().range ([height, 0]);
+    // x-axis label
+    svg.append('text')
+        .attr('x', width / 2)
+        .attr('y', height - 6)
+        .attr('text-anchor', 'middle')
+        .text('Grade');
 
-    var g = svg.append("g")
-        .attr("transform", "translate(" + 100 + "," + 100 + ")");
+    //y-axis label
+    svg.append('text')
+        .attr('transform', 'rotate(-90)')
+        .attr('y', 0 )
+        .attr('x', 0 - (height / 2))
+        .attr('dy', '0.75em')
+        .style('text-anchor', 'middle')
+        .text('Frequency (%)')
 
-    xScale.domain(data.map(function(d) { return d.username; }));
-    yScale.domain([0, d3.max(data, function(d) { return d.wins; })]);
+    
+    // create a group (g) for the bars
+    let g = svg.append('g')
+                    .attr('transform', `translate(${margin}, ${margin})`);
 
-    g.append("g")
-    .attr("transform", "translate(0," + height + ")")
-    .call(d3.axisBottom(xScale))
-    .append("text")
-    .attr("y", height - margin - 50)
-    .attr("x", width - margin)
-    .attr("font-size", "20px")
-    .attr("text-anchor", "end")
-    .attr("fill", "black")
-    .text("Player");
+    // y-axis
+    g.append('g')
+        .call(d3.axisLeft(yScale));
+    
+    // x-axis
+    g.append('g')
+        .attr('transform', `translate(0, ${chartHeight})`)
+        .call(d3.axisBottom(xScale));
+    
+    let rectangles = g.selectAll('rect')
+        .data(data)
+        .enter()
+            .append('rect')
+                .attr('x', (data) => xScale(data.name))
+                .attr('y', (data) => yScale(data.wins))
+                .attr('width', xScale.bandwidth())
+                .attr('height', (data) => chartHeight - yScale(data.name))
+                .attr('fill', (data) => colourScale(data.wins));
 
-    g.append("g")
-    .call(d3.axisLeft(yScale).tickFormat(function(d){
-        return  d;
-    }).ticks(10))
-    .append("text")
-    .attr("transform", "rotate(-90)")
-    .attr("y", 50)
-    .attr("x", - margin*0.5 + 20)
-    .attr("dy", "-5.1em")
-    .attr("font-size", "20px")
-    .attr("text-anchor", "end")
-    .attr("fill", "black")
-    .text("Number of wins");
-
-    g.selectAll(".bar")
-    .data(data)
-    .enter().append("rect")
-    .attr("class", "bar")
-    .attr("x", function(d) { return xScale(d.username); })
-    .attr("y", function(d) { return yScale(d.wins); })
-    .attr("width", xScale.bandwidth())
-    .attr("height", function(d) { return height - yScale(d.wins); })
-    .attr("fill", (data) => colourScale(data.wins));
-
-
-});
+    rectangles.transition()
+        .ease(d3.easeElastic)
+        .attr('height', (data) => chartHeight - yScale(data.wins))
+        .attr('y', (data) => yScale(data.wins))
+        .duration(1000)
+        .delay((data, index) => index * 50);
+}
 
 
 /*

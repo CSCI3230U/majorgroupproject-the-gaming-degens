@@ -1,9 +1,6 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
-/* * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-} */
+
+
 :root {
 	--dark-color-a: #4370F1;
 	--dark-color-b: #7386ff;

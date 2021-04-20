@@ -1,11 +1,24 @@
 extends toplevel 
 block content
-    link(rel='stylesheet' href='styles/style.css')
-    p#IsValid=resp
-    form#Form(method='post' action='/createChart' class='form')
-        head
-            title leaderBoardsGraph
-        body
-        .graph 
-            div.graphTitle
+    #chart
+    .chat-container
+        header.chat-header
+            h1
+                i.fas.fa-smile Connect 4 Chat
+            button.btn
+                a.fas.fa-paper-plane#lev Leave Room
+        main.chat-main
+            .chat-sidebar
+                h3
+                    i.fas.fa-comments Room Name:
+                h2#room-name
+                h3
+                    i.fas.fa-users Users
+                ul#users
+            .chat-messages
+        .chat-form-container
+            form#chat-form
+                input#msg(type='text' placeholder='Enter Message' required='' autocomplete='off')
+                button.btn
+                    i.fas.fa-paper-plane Send
 
