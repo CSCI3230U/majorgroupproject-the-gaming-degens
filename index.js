@@ -7,8 +7,8 @@ let formatMessage = require('./public/scripts/utils/messages.js');
 let {userJoin, getCurrentUser, userLeave, getRoomUsers, getCurrentUserbyName, getUsers, getInRoom} = require('./public/scripts/utils/users.js');
 let {addPlayer, getCurrentPlayer, getRoomPlayers, playerLeave} = require('./public/scripts/utils/players.js');
 let {addGame, getCurrentGame, getGames} = require('./public/scripts/utils/games.js');
+let {addChat, getCurrentChat, getchats} = require('./public/scripts/utils/history.js');
 const modelUsers = require('./public/scripts/models/usersModel.js');
-const { Cookie } = require('express-session');
 
 let app = express();
 let server = http.createServer(app);
@@ -27,6 +27,7 @@ server.listen(app.get('port'), function() {
 let adminName = "Chat Bot";
 let welcomeMessage = "The room code above is used to connect to a game. Send it to your opponent.";
 let roomSize = 2;
+let chatHistSize = 12;
 let players = getUsers();
 
 function extractCookies(cookies) {
@@ -44,29 +45,29 @@ io.on('connection', socket => {
     let pushUsers = false;
     let cookies = socket.handshake.headers.cookie;
     let dictCookies = extractCookies(cookies);
-    console.log("new connection... " + socket.id);
     if (getRoomUsers(dictCookies.room).length < roomSize && dictCookies) {
         if ("room" in dictCookies && "username" in dictCookies) {
             if (dictCookies.room !== "undefined" && dictCookies.signedIn == "true") {
                 if (!getInRoom(dictCookies.username, dictCookies.room)) { 
                     userJoin(socket.id, dictCookies.username, dictCookies.room);
+                    console.log(getUsers());
                     addPlayer(socket, null, dictCookies.room);
                 }
                 let game = getCurrentGame(dictCookies.room);
                 if (game) {
                     socket.emit('moveHistory' , game.moves);
                 }
-    
-                socket.emit('rejoin', ({
-                    r: dictCookies.room, 
-                    n: dictCookies.username,
-                }));
+
+                let chat = getCurrentChat(dictCookies.room);
+                if (chat) {
+                    socket.emit('rejoin', chat.messages);
+                }
     
                 socket.join(dictCookies.room);
         
                 socket.emit('message', formatMessage(adminName, 'Welcome back to Connect 4!'));
         
-                socket.broadcast.to(dictCookies.room).emit('message', formatMessage(adminName, `${dictCookies.username} has joined the Game`));
+                socket.broadcast.to(dictCookies.room).emit('message', formatMessage(adminName, `${dictCookies.username} has rejoined the Game`));
                 if (getRoomUsers(dictCookies.room).length > 1) {
                     io.to(dictCookies.room).emit('live', true);
                 }
@@ -85,7 +86,7 @@ io.on('connection', socket => {
     socket.on('startGame', (num) => {
         let user = getCurrentPlayer(socket);
         let users = getRoomPlayers(user.room);
-        
+    
         addGame([], user.room);
 
         if (num == 0) {
@@ -102,19 +103,19 @@ io.on('connection', socket => {
     });
 
     //Send to database
-    socket.once('connected', (color) =>{
+    socket.on('addGame', (color) =>{
         var winningPlayer;
         var losingPlayer;
-        if (players[0].color == color){
+        if (players[0].color == color) {
             winningPlayer = players[0].username;
             losingPlayer = players[1].username;
         }
-        if(players[1].color == color){
+        if(players[1].color == color) {
             winningPlayer = players[1].username;
             losingPlayer = players[0].username;
         }
-      //  Increase winner
-        modelUsers.User.find({username: winningPlayer}).then(function(winner){
+        // Increase winner
+        modelUsers.User.find({username: winningPlayer}).then(function(winner) {
             var addwin = 0
             addwin = winner[0].wins + 1;
             let playerData = {
@@ -130,15 +131,11 @@ io.on('connection', socket => {
                 function(error, numAffected) {
                     if (error || numAffected != 1) {
                         console.error('Unable to update student:', error);
-                        
                     } 
-                }
-                );
-            
+                });
         });
-
-        //Increase lose
-        modelUsers.User.find({username: losingPlayer}).then(function(loser){
+        // Increase lose
+        modelUsers.User.find({username: losingPlayer}).then(function(loser) {
             var addloss = 0
             addloss = loser[0].loses + 1;
             let loserData = {
@@ -154,14 +151,9 @@ io.on('connection', socket => {
                 function(error, numAffected) {
                     if (error || numAffected != 1) {
                         console.error('Unable to update student:', error);
-                        
                     } 
-                }
-                );
-            
+                });
         });
-        
-
     });
 
     socket.on('createRoom', (room) => {
@@ -227,6 +219,23 @@ io.on('connection', socket => {
         } 
     });
 
+    socket.on('addMessage', ({text, time, name}) => {
+        let user = getCurrentUser(socket.id);
+        let chat = getCurrentChat(user.room);
+        if (chat == undefined) {
+            chat = addChat(socket.id, user.room, 0, []);
+        }
+        if (name == user.username) return;
+        if (chat.numMsg <= chatHistSize) {
+            chat.messages.push({text, time, name});
+            chat.numMsg++;
+        } else {
+            chat.messages.push({text, time, name});
+            chat.messages.shift();
+        }
+        console.log(chat.messages);
+    });
+
     socket.on('chatMessage', (msg) => {
         let user = getCurrentUser(socket.id);
         if (user) {
@@ -280,6 +289,8 @@ io.on('connection', socket => {
         }
         io.to(user.room).emit('live', false);
     });
+
+    console.log("Users connected to server: ", getUsers());
 });
 
 app.use(express.urlencoded({extended: false}));

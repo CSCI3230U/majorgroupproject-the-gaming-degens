@@ -1,3 +1,9 @@
+/*
+    Names: Andrew Murdoch, Andre Forbes and Adam Green
+    Class: CSCI 3230U
+
+    This file connects to local user database and creates schema to export.
+*/
 var mongoose = require('mongoose');
 
 // setup mongodb database

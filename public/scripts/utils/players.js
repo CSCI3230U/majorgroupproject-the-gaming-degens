@@ -1,6 +1,16 @@
+/*
+    Names: Andrew Murdoch, Andre Forbes and Adam Green
+    Class: CSCI 3230U
 
+    This file holds player info.
+*/
 let users = [];
 
+/**
+ * @param socket - socket player uses
+ * @param color - color of player
+ * @param room - room player is in
+ */
 function addPlayer(socket, color, room) {
     let user = {socket, color, room};
 

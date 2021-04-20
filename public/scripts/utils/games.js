@@ -1,6 +1,15 @@
+/*
+    Names: Andrew Murdoch, Andre Forbes and Adam Green
+    Class: CSCI 3230U
 
+    This file holds games info.
+*/
 let games = [];
 
+/**
+ * @param moves - moves in game
+ * @param room - room for game
+ */
 function addGame(moves, room) {
     let game = {moves, room};
 

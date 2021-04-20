@@ -1,3 +1,9 @@
+/*
+    Names: Andrew Murdoch, Andre Forbes and Adam Green
+    Class: CSCI 3230U
+
+    This file holds the connect 4 game logic when playing locally without a game room.
+*/
 let allCells = document.querySelectorAll(".cell:not(.row-top)");
 let topCells = document.querySelectorAll(".cell.row-top")
 let resetButton = document.querySelector(".reset");
@@ -137,134 +143,6 @@ function resetGameBoard() {
     isMyTurn = true;
     statusSpan.textContent = "";
 }
-
-// function checkStatusGame(cell) {
-//     let color = getColorofCell(cell);
-//     if (!color) return;
-//     let [row, col] = getCellLocation(cell);
-
-//     // check horizontally
-//     let winningCells = [cell];
-//     let checkRow = row;
-//     let checkCol = col - 1;
-//     while (checkCol >= 0) {
-//         let cellToCheck = rows[checkRow][checkCol];
-//         if (color === getColorofCell(cellToCheck)) {
-//             winningCells.push(cellToCheck);
-//             checkCol--;
-//         } else {
-//             break;
-//         }
-//     }
-//     checkCol = col + 1;
-//     console.log(checkRow, checkCol);
-//     while (checkCol <= 6) {
-//         let cellToCheck = rows[checkRow][checkCol];
-//         if (color === getColorofCell(cellToCheck)) {
-//             winningCells.push(cellToCheck);
-//             checkCol++;
-//         } else {
-//             break;
-//         }
-//     }
-
-//     let hasWon = checkWinningCells(winningCells);
-//     if (hasWon) return;
-
-//     // check vertically
-//     winningCells = [cell];
-//     checkRow = row - 1;
-//     checkCol = col;
-//     while (checkRow >= 0) {
-//         let cellToCheck = rows[checkRow][checkCol];
-//         if (color === getColorofCell(cellToCheck)) {
-//             winningCells.push(cellToCheck);
-//             checkRow--;
-//         } else {
-//             break;
-//         }
-//     }
-//     checkRow = row + 1;
-//     while (checkRow <= 5) {
-//         let cellToCheck = rows[checkRow][checkCol];
-//         if (color === getColorofCell(cellToCheck)) {
-//             winningCells.push(cellToCheck);
-//             checkRow++;
-//         } else {
-//             break;
-//         }
-//     }
-
-//     hasWon = checkWinningCells(winningCells);
-//     if (hasWon) return;
-
-//     // check diagnoally (forwardslash)
-//     winningCells = [cell];
-//     checkRow = row + 1;
-//     checkCol = col - 1;
-//     while (checkCol >= 0 && checkRow <= 5) {
-//         let cellToCheck = rows[checkRow][checkCol];
-//         if (color === getColorofCell(cellToCheck)) {
-//             winningCells.push(cellToCheck);
-//             checkRow++;
-//             checkCol--;
-//         } else {
-//             break;
-//         }
-//     }
-//     checkRow = row - 1;
-//     checkCol = col + 1;
-//     while (checkCol <= 6 && checkRow >= 0) {
-//         let cellToCheck = rows[checkRow][checkCol];
-//         if (color === getColorofCell(cellToCheck)) {
-//             winningCells.push(cellToCheck);
-//             checkRow--;
-//             checkCol++;
-//         } else {
-//             break;
-//         }
-//     }
-
-//     hasWon = checkWinningCells(winningCells);
-//     if (hasWon) return;
-
-//     // check diagnoally (backslash)
-//     winningCells = [cell];
-//     checkRow = row - 1;
-//     checkCol = col - 1;
-//     while (checkCol >= 0 && checkRow >= 0) {
-//         let cellToCheck = rows[checkRow][checkCol];
-//         if (color === getColorofCell(cellToCheck)) {
-//             winningCells.push(cellToCheck);
-//             checkRow--;
-//             checkCol--;
-//         } else {
-//             break;
-//         }
-//     }
-//     checkRow = row + 1;
-//     checkCol = col + 1;
-//     while (checkCol <= 6 && checkRow <= 5) {
-//         let cellToCheck = rows[checkRow][checkCol];
-//         if (color === getColorofCell(cellToCheck)) {
-//             winningCells.push(cellToCheck);
-//             checkRow++;
-//             checkCol++;
-//         } else {
-//             break;
-//         }
-//     }
-
-//     hasWon = checkWinningCells(winningCells);
-//     if (hasWon) return;
-
-//     // let rowsWithoutTop = rows.slice();
-//     // for (let row of rows) {
-//     //     for (let cell of row) {
-            
-//     //     }
-//     // }
-// }
 
 function checkStatusGame(cell) {
     let color = getColorofCell(cell);

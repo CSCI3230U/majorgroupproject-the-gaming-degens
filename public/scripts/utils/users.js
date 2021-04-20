@@ -1,6 +1,16 @@
+/*
+    Names: Andrew Murdoch, Andre Forbes and Adam Green
+    Class: CSCI 3230U
 
+    This file holds users info.
+*/
 let users = [];
 
+/**
+ * @param id - socket id of user
+ * @param username - name of user
+ * @param room - room user is in
+ */
 function userJoin(id, username, room) {
     let user = {id, username, room};
 
