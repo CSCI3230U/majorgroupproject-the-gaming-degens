@@ -331,6 +331,20 @@ app.get('/home', function(request, response) {
         });
     }
 });
+app.get('/leaderboards', function(request, response) {
+    let dictCookies = extractCookies(request.headers.cookie);
+    if (dictCookies.signedIn == 'true') {
+        response.render("leaderboards", {
+            pageTitle: "Connect 4 Leaderboards",
+            signedIn: true,
+        });
+    } else {
+        response.render("leaderboards", {
+            pageTitle: "Connect 4 Leaderboards",
+            signedIn: false,
+        });
+    }
+});
 
 app.get('/sign-up', function(request, response) {
     response.render("sign-up", {
