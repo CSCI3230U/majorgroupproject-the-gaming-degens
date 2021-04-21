@@ -269,6 +269,7 @@ io.on('connection', socket => {
     */
     socket.on('addMessage', ({text, time, name}) => {
         let user = getCurrentUser(socket.id);
+        if (!user) return;
         let chat = getCurrentChat(user.room);
         if (chat == undefined) {
             chat = addChat(socket.id, user.room, 0, []);
@@ -310,7 +311,9 @@ io.on('connection', socket => {
     */
     socket.on('reset', () => {
         let user = getCurrentUser(socket.id);
+        if (!user) return;
         let game = getCurrentGame(user.room);
+        if (!game) return;
         game.moves = [];
         socket.broadcast.to(user.room).emit('resetCall');
     });
